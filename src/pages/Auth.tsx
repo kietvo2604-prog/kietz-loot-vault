@@ -65,7 +65,7 @@ const Auth = () => {
     if (result?.error) {
       setError(result.error.message || "Đăng nhập Google thất bại");
     }
-    setLoading(false);
+    setSubmitting(false);
   };
 
   return (
