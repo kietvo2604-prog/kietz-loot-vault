@@ -200,7 +200,10 @@
 }
 
 .animate-spin-slow {
-  animation: spin-slow 4s linear infinite;
+  animation: none;
+}
+.animate-spin-slow:hover {
+  animation: spin-slow 1s linear;
 }
 
 @keyframes pulse-neon {
