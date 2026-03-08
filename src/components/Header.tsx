@@ -1,4 +1,4 @@
-import { Search, ShoppingCart, User, Gamepad2, ChevronDown, LogOut, Wallet } from "lucide-react";
+import { Search, ShoppingCart, User, Gamepad2, ChevronDown, LogOut, Wallet, Shield } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "./ThemeToggle";
@@ -9,8 +9,18 @@ const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!user) { setIsAdmin(false); return; }
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").then(({ data }) => {
+        setIsAdmin(!!(data && data.length > 0));
+      });
+    });
+  }, [user]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -89,6 +99,11 @@ const Header = () => {
                     <a href="/lich-su" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                       <User className="w-4 h-4" /> Tài khoản
                     </a>
+                    {isAdmin && (
+                      <a href="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-neon-orange hover:bg-muted transition-colors">
+                        <Shield className="w-4 h-4" /> Admin Dashboard
+                      </a>
+                    )}
                     <button
                       onClick={() => { signOut(); setUserMenuOpen(false); }}
                       className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-destructive hover:bg-muted transition-colors"
