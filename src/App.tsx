@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import TopUp from "./pages/TopUp";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
+import ClickSparkle from "./components/ClickSparkle";
 
 const queryClient = new QueryClient();
 
@@ -15,6 +16,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <ClickSparkle />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
