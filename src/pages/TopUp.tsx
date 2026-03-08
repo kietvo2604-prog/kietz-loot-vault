@@ -195,7 +195,7 @@ const TopUp = () => {
 
               <div className="grid md:grid-cols-2 gap-3">
                 {eWallets.map((w: any) => (
-                  <div key={w.name} className="bg-muted border border-border rounded-lg p-4">
+                  <div key={w.name} className="bg-muted border border-border rounded-lg p-4 text-center">
                     <p className="font-bold text-foreground mb-1">{w.name}</p>
                     {w.hasQR && (
                       <div className="my-3 flex justify-center">
