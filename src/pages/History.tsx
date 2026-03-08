@@ -9,12 +9,7 @@ type Tab = "purchases" | "topups" | "balance";
 
 const mockPurchases: { id: number; product: string; price: number; date: string; status: string }[] = [];
 
-const mockTopups = [
-  { id: 1, method: "ZaloPay", amount: 100000, received: 100000, date: "2026-03-08 13:00", status: "success" },
-  { id: 2, method: "Thẻ Viettel", amount: 50000, received: 40000, date: "2026-03-07 08:30", status: "success" },
-  { id: 3, method: "ATM Vietcombank", amount: 200000, received: 200000, date: "2026-03-06 11:20", status: "success" },
-  { id: 4, method: "Thẻ Mobifone", amount: 100000, received: 80000, date: "2026-03-05 15:10", status: "failed" },
-];
+const mockTopups: { id: number; method: string; amount: number; received: number; date: string; status: string }[] = [];
 
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
