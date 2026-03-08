@@ -93,9 +93,9 @@ const AdminTopups = () => {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Đang tải...</td></tr>
+                <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Đang tải...</td></tr>
               ) : requests.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Không có yêu cầu</td></tr>
+                <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Không có yêu cầu</td></tr>
               ) : (
                 requests.map((r) => (
                   <tr key={r.id} className="border-b border-border hover:bg-muted/30 transition-colors">
