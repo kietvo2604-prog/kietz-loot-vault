@@ -194,6 +194,14 @@
   }
 }
 
+.logo-gradient-text {
+  background: linear-gradient(135deg, hsl(var(--neon-orange)), hsl(var(--neon-red)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 8px hsl(var(--neon-orange) / 0.5));
+}
+
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }

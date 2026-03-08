@@ -26,16 +26,21 @@ const AnimatedLogo = () => {
   }, []);
 
   return (
-    <h1 className="font-display text-xl md:text-2xl font-bold tracking-wider select-none relative">
-      <span className="neon-text text-primary">
-        {displayed}
+    <div className="flex flex-col items-start leading-none select-none">
+      <span className="text-[8px] md:text-[10px] font-bold tracking-[0.2em] uppercase text-neon-orange">
+        Shop Acc Uy Tín Nhất
       </span>
-      <span
-        className={`inline-block w-[2px] h-[1.1em] bg-primary ml-0.5 align-middle transition-opacity duration-100 ${
-          showCursor ? "opacity-100" : "opacity-0"
-        } ${doneTyping ? "animate-pulse-neon" : ""}`}
-      />
-    </h1>
+      <h1 className="font-display text-xl md:text-2xl font-bold tracking-wider relative">
+        <span className="logo-gradient-text">
+          {displayed}
+        </span>
+        <span
+          className={`inline-block w-[2px] h-[1.1em] bg-neon-orange ml-0.5 align-middle transition-opacity duration-100 ${
+            showCursor ? "opacity-100" : "opacity-0"
+          } ${doneTyping ? "animate-pulse-neon" : ""}`}
+        />
+      </h1>
+    </div>
   );
 };
 
