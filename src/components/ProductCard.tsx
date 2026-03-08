@@ -86,6 +86,7 @@ const ProductCard = ({ name, price, stock, description, category }: ProductCardP
       title: "✅ Mua hàng thành công!",
       description: `Bạn đã mua "${name}" với giá ${price}. Kiểm tra trong Lịch sử đơn hàng.`,
     });
+    setTimeout(() => window.location.reload(), 1500);
   };
 
   return (
