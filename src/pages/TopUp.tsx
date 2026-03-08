@@ -83,6 +83,7 @@ const TopUp = () => {
     if (error) {
       toast({ title: "Lỗi", description: "Không thể gửi yêu cầu. Vui lòng thử lại.", variant: "destructive" });
     } else {
+      toast({ title: "✅ Đã gửi yêu cầu nạp thẻ", description: `Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang chờ Admin xử lý.` });
       setSuccessMessage(`✅ Đã gửi yêu cầu nạp thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)}. Đang chờ Admin xử lý, vui lòng đợi!`);
       setSerial("");
       setCode("");
