@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 const FULL_TEXT = "ShopKietZ";
 
@@ -6,6 +6,8 @@ const AnimatedLogo = () => {
   const [displayed, setDisplayed] = useState("");
   const [showCursor, setShowCursor] = useState(true);
   const [doneTyping, setDoneTyping] = useState(false);
+  const [bouncing, setBouncing] = useState(false);
+  const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number }[]>([]);
 
   useEffect(() => {
     let i = 0;
@@ -25,8 +27,29 @@ const AnimatedLogo = () => {
     return () => clearInterval(blink);
   }, []);
 
+  const handleClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    setBouncing(true);
+    setTimeout(() => setBouncing(false), 500);
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const newSparkles = Array.from({ length: 6 }, (_, i) => ({
+      id: Date.now() + i,
+      x: x + (Math.random() - 0.5) * 40,
+      y: y + (Math.random() - 0.5) * 30,
+    }));
+    setSparkles((prev) => [...prev, ...newSparkles]);
+    setTimeout(() => {
+      setSparkles((prev) => prev.filter((s) => !newSparkles.find((n) => n.id === s.id)));
+    }, 700);
+  }, []);
+
   return (
-    <div className="flex flex-col items-start leading-none select-none">
+    <div
+      className={`flex flex-col items-start leading-none select-none cursor-pointer relative ${bouncing ? "logo-bounce" : ""}`}
+      onClick={handleClick}
+    >
       <span className="text-[8px] md:text-[10px] font-bold tracking-[0.2em] uppercase text-primary/70">
         Shop Acc Uy Tín Nhất
       </span>
@@ -40,6 +63,13 @@ const AnimatedLogo = () => {
           } ${doneTyping ? "animate-pulse-neon" : ""}`}
         />
       </h1>
+      {sparkles.map((s) => (
+        <span
+          key={s.id}
+          className="logo-sparkle"
+          style={{ left: s.x, top: s.y }}
+        />
+      ))}
     </div>
   );
 };
