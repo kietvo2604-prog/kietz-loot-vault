@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Gamepad2, Mail, Lock, User as UserIcon, LogIn, ArrowRight } from "lucide-react";
@@ -9,17 +10,24 @@ import Footer from "@/components/Footer";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, loading, navigate]);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitting(true);
     setError("");
     setMessage("");
 
@@ -45,11 +53,11 @@ const Auth = () => {
         setMessage("Đăng ký thành công! Kiểm tra email để xác nhận tài khoản.");
       }
     }
-    setLoading(false);
+    setSubmitting(false);
   };
 
   const handleGoogleLogin = async () => {
-    setLoading(true);
+    setSubmitting(true);
     setError("");
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
@@ -57,7 +65,7 @@ const Auth = () => {
     if (result?.error) {
       setError(result.error.message || "Đăng nhập Google thất bại");
     }
-    setLoading(false);
+    setSubmitting(false);
   };
 
   return (
@@ -139,11 +147,11 @@ const Auth = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={submitting}
               className="w-full py-3 gradient-primary text-primary-foreground font-bold rounded-lg text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <LogIn className="w-4 h-4" />
-              {loading ? "Đang xử lý..." : isLogin ? "Đăng nhập" : "Đăng ký"}
+              {submitting ? "Đang xử lý..." : isLogin ? "Đăng nhập" : "Đăng ký"}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
@@ -159,7 +167,7 @@ const Auth = () => {
 
           <button
             onClick={handleGoogleLogin}
-            disabled={loading}
+            disabled={submitting}
             className="w-full py-3 bg-muted border border-border rounded-lg font-semibold text-sm text-foreground hover:bg-border transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">
