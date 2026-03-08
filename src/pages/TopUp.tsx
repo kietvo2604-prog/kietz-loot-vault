@@ -25,6 +25,8 @@ const cardTypes = [
 const denominations = [10000, 20000, 50000, 100000, 200000, 500000];
 
 const TopUp = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [tab, setTab] = useState<"card" | "atm">("card");
   const [selectedCard, setSelectedCard] = useState("viettel");
   const [selectedDenom, setSelectedDenom] = useState(100000);
@@ -32,6 +34,7 @@ const TopUp = () => {
   const [code, setCode] = useState("");
   const [copiedField, setCopiedField] = useState("");
   const [errors, setErrors] = useState<{ serial?: string; code?: string }>({});
+  const [submitting, setSubmitting] = useState(false);
 
   const currentCard = cardTypes.find((c) => c.id === selectedCard)!;
 
