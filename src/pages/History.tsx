@@ -184,11 +184,36 @@ const History = () => {
             {/* Tab: Đơn hàng */}
             {tab === "orders" && (
               <div className="space-y-3 animate-slide-up">
-                <div className="bg-card border border-border rounded-xl p-10 text-center">
-                  <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground">Chưa có đơn hàng nào.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Các tài khoản bạn đã mua sẽ hiển thị ở đây.</p>
-                </div>
+                {orders.length === 0 ? (
+                  <div className="bg-card border border-border rounded-xl p-10 text-center">
+                    <ShoppingBag className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">Chưa có đơn hàng nào.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Các tài khoản bạn đã mua sẽ hiển thị ở đây.</p>
+                  </div>
+                ) : (
+                  orders.map((o) => (
+                    <div key={o.id} className="bg-card border border-primary/20 rounded-xl p-4 neon-card flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <ShoppingBag className="w-5 h-5 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-foreground text-sm truncate">{o.product_name}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                            <span className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-medium">{o.product_category}</span>
+                            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(o.created_at).toLocaleString("vi-VN")}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-bold text-destructive text-sm">-{formatVND(o.price)}</p>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-primary/10 border-primary/30 text-primary">
+                          <CheckCircle className="w-3 h-3" /> Thành công
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 
