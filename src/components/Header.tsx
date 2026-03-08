@@ -4,6 +4,18 @@ import ThemeToggle from "./ThemeToggle";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const historyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (historyRef.current && !historyRef.current.contains(e.target as Node)) {
+        setHistoryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">
