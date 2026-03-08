@@ -7,9 +7,6 @@ import { CreditCard, Smartphone, Wallet, Gift, Copy, CheckCircle, AlertTriangle,
 
 const banks = [
   { name: "BV Bank", number: "99ZP25275M36980652", holder: "ZALOPAY_VO ANH KIET" },
-  { name: "Vietcombank", number: "", holder: "" },
-  { name: "MB Bank", number: "", holder: "" },
-  { name: "Techcombank", number: "", holder: "" },
 ];
 
 const eWallets = [
