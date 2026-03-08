@@ -52,11 +52,13 @@ const History = () => {
     if (!user) return;
     const fetchData = async () => {
       setLoading(true);
-      const [topupRes, profileRes] = await Promise.all([
+      const [topupRes, profileRes, ordersRes] = await Promise.all([
         supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
         supabase.from("profiles").select("balance").eq("user_id", user.id).single(),
+        supabase.from("orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       ]);
       setTopups(topupRes.data || []);
+      setOrders((ordersRes.data as Order[]) || []);
       setProfileBalance(profileRes.data?.balance || 0);
       setLoading(false);
     };
