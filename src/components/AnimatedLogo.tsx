@@ -27,15 +27,15 @@ const AnimatedLogo = () => {
 
   return (
     <div className="flex flex-col items-start leading-none select-none">
-      <span className="text-[8px] md:text-[10px] font-bold tracking-[0.2em] uppercase text-neon-orange">
+      <span className="text-[8px] md:text-[10px] font-bold tracking-[0.2em] uppercase text-primary/70">
         Shop Acc Uy Tín Nhất
       </span>
       <h1 className="font-display text-xl md:text-2xl font-bold tracking-wider relative">
-        <span className="logo-gradient-text">
+        <span className="neon-text text-primary">
           {displayed}
         </span>
         <span
-          className={`inline-block w-[2px] h-[1.1em] bg-neon-orange ml-0.5 align-middle transition-opacity duration-100 ${
+          className={`inline-block w-[2px] h-[1.1em] bg-primary ml-0.5 align-middle transition-opacity duration-100 ${
             showCursor ? "opacity-100" : "opacity-0"
           } ${doneTyping ? "animate-pulse-neon" : ""}`}
         />
