@@ -15,10 +15,13 @@ const Header = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!user) { setIsAdmin(false); return; }
+    if (!user) { setIsAdmin(false); setBalance(null); return; }
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").then(({ data }) => {
         setIsAdmin(!!(data && data.length > 0));
+      });
+      supabase.from("profiles").select("balance").eq("user_id", user.id).single().then(({ data }) => {
+        setBalance(data?.balance ?? 0);
       });
     });
   }, [user]);
