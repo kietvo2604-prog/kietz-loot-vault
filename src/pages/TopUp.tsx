@@ -83,10 +83,13 @@ const TopUp = () => {
 
         {/* Card Tab */}
         {tab === "card" && (
-          <div className="bg-card border border-border rounded-xl p-6 neon-card animate-slide-up space-y-6">
+           <div className="bg-card border border-border rounded-xl p-6 neon-card animate-slide-up space-y-6">
             <div className="flex items-center gap-2 mb-2">
               <CreditCard className="w-6 h-6 text-neon-cyan" />
               <h2 className="font-display text-lg font-bold text-secondary neon-cyan-text">NẠP QUA THẺ CÀO</h2>
+              <span className="gradient-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                -20% chiết khấu
+              </span>
             </div>
 
             {/* Card Type */}
