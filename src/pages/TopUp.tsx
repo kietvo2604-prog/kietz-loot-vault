@@ -28,11 +28,40 @@ const TopUp = () => {
   const [serial, setSerial] = useState("");
   const [code, setCode] = useState("");
   const [copiedField, setCopiedField] = useState("");
+  const [errors, setErrors] = useState<{ serial?: string; code?: string }>({});
+
+  const currentCard = cardTypes.find((c) => c.id === selectedCard)!;
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(""), 2000);
+  };
+
+  const validateCard = () => {
+    const newErrors: { serial?: string; code?: string } = {};
+    const serialDigits = serial.replace(/\D/g, "");
+    const codeDigits = code.replace(/\D/g, "");
+
+    if (!serialDigits) {
+      newErrors.serial = "Vui lòng nhập số Seri";
+    } else if (!currentCard.serialLengths.includes(serialDigits.length)) {
+      newErrors.serial = `Số Seri ${currentCard.name} phải có ${currentCard.serialHint}`;
+    }
+
+    if (!codeDigits) {
+      newErrors.code = "Vui lòng nhập mã thẻ";
+    } else if (!currentCard.codeLengths.includes(codeDigits.length)) {
+      newErrors.code = `Mã thẻ ${currentCard.name} phải có ${currentCard.codeHint}`;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validateCard()) return;
+    // TODO: submit topup request
   };
 
   const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
