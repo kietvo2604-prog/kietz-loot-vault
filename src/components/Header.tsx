@@ -1,6 +1,7 @@
 import { Search, ShoppingCart, User, Gamepad2, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
+import AnimatedLogo from "./AnimatedLogo";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,12 +23,10 @@ const Header = () => {
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
-          <div className="flex items-center gap-2 shrink-0">
-            <Gamepad2 className="w-8 h-8 text-primary neon-text" />
-            <h1 className="font-display text-xl md:text-2xl font-bold text-primary neon-text tracking-wider">
-              ShopKietZ
-            </h1>
-          </div>
+          <a href="/" className="flex items-center gap-2 shrink-0">
+            <Gamepad2 className="w-8 h-8 text-primary neon-text animate-pulse-neon" />
+            <AnimatedLogo />
+          </a>
 
           {/* Search */}
           <div className="flex-1 max-w-xl hidden md:block">
