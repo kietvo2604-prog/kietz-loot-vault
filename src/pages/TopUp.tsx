@@ -199,7 +199,7 @@ const TopUp = () => {
                     <p className="font-bold text-foreground mb-1">{w.name}</p>
                     {w.hasQR && (
                       <div className="my-3 flex justify-center">
-                        <img src={zalopayQR} alt="ZaloPay QR" className="w-48 h-48 rounded-lg border border-border object-contain bg-white" />
+                        <img src={zalopayQR} alt="ZaloPay QR" className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
                       </div>
                     )}
                     <div className="flex items-center justify-between">
