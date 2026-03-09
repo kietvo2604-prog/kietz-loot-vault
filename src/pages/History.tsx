@@ -200,8 +200,9 @@ const History = () => {
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-foreground text-sm truncate">{o.product_name}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
                             <span className="px-1.5 py-0.5 bg-muted rounded text-[10px] font-medium">{o.product_category}</span>
+                            {o.order_code && <span className="font-mono text-[10px] text-primary font-bold">{o.order_code}</span>}
                             <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(o.created_at).toLocaleString("vi-VN")}</span>
                           </div>
                         </div>

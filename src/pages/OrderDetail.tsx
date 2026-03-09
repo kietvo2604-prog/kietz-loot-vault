@@ -105,7 +105,7 @@ const OrderDetail = () => {
             </div>
             <div>
               <h1 className="font-display text-lg font-bold text-foreground">CHI TIẾT ĐƠN HÀNG</h1>
-              <p className="text-xs text-muted-foreground">Mã: {order.id.slice(0, 8).toUpperCase()}</p>
+              <p className="text-xs text-muted-foreground">Mã: <span className="font-mono font-bold text-primary">{order.order_code || order.id.slice(0, 8).toUpperCase()}</span></p>
             </div>
           </div>
 
