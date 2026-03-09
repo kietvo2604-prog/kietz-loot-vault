@@ -24,6 +24,7 @@ type TopupRequest = {
 
 type Order = {
   id: string;
+  order_code: string | null;
   product_name: string;
   product_category: string;
   price: number;
