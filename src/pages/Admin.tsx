@@ -112,6 +112,7 @@ const Admin = () => {
       <main className="flex-1 p-6 overflow-auto">
         <div className="max-w-6xl mx-auto">
           {tab === "overview" && <AdminOverview />}
+          {tab === "orders" && <AdminOrders />}
           {tab === "users" && <AdminUsers />}
           {tab === "topups" && <AdminTopups />}
           {tab === "products" && <AdminProducts />}
