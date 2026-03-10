@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           account_info: string | null
@@ -49,6 +73,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      product_accounts: {
+        Row: {
+          account_info: string
+          created_at: string
+          id: string
+          is_sold: boolean
+          product_id: string
+          sold_to_order_id: string | null
+        }
+        Insert: {
+          account_info: string
+          created_at?: string
+          id?: string
+          is_sold?: boolean
+          product_id: string
+          sold_to_order_id?: string | null
+        }
+        Update: {
+          account_info?: string
+          created_at?: string
+          id?: string
+          is_sold?: boolean
+          product_id?: string
+          sold_to_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_accounts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_accounts_sold_to_order_id_fkey"
+            columns: ["sold_to_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -178,12 +244,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_recent_purchases: {
+        Args: { limit_count?: number }
+        Returns: {
+          avatar_url: string
+          created_at: string
+          display_name: string
+          price: number
+          product_category: string
+          product_name: string
+        }[]
+      }
+      get_topup_leaderboard: {
+        Args: { limit_count?: number }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          total_amount: number
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      purchase_product: {
+        Args: { p_product_id: string; p_user_id: string }
+        Returns: Json
       }
     }
     Enums: {
