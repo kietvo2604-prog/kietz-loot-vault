@@ -47,8 +47,13 @@ const Index = () => {
   const slugMap: Record<string, string> = {};
   categories.forEach(c => { slugMap[c.name] = c.slug; });
 
+  // Filter by search
+  const filtered = searchQuery.trim()
+    ? products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase()))
+    : products;
+
   const grouped: Record<string, Product[]> = {};
-  products.forEach((p) => {
+  filtered.forEach((p) => {
     if (!grouped[p.category]) grouped[p.category] = [];
     grouped[p.category].push(p);
   });
