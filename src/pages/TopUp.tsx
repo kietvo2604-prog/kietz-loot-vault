@@ -77,7 +77,7 @@ const TopUp = () => {
       user_id: user.id,
       amount: selectedDenom,
       method: `Thẻ cào ${currentCard.name}`,
-      note: `Seri: ${serial} | Mã: ${code} | Mệnh giá: ${selectedDenom}`,
+      note: `Seri: ${serial} | Mã: ${code} | Mệnh giá: ${selectedDenom.toLocaleString("vi-VN")}đ`,
     });
     setSubmitting(false);
     if (error) {
