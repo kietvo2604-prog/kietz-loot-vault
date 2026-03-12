@@ -41,6 +41,33 @@ export type Database = {
         }
         Relationships: []
       }
+      ctv_assignments: {
+        Row: {
+          assigned_categories: string[]
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          user_id: string | null
+        }
+        Insert: {
+          assigned_categories?: string[]
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          assigned_categories?: string[]
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       discount_codes: {
         Row: {
           code: string
