@@ -9,6 +9,7 @@ interface Product {
   stock: number;
   description: string;
   category: string;
+  imageUrl?: string;
 }
 
 interface ProductSectionProps {
