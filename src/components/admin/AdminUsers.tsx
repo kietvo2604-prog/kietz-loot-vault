@@ -102,6 +102,20 @@ const AdminUsers = () => {
                         >
                           - Trừ tiền
                         </button>
+                        <button
+                          onClick={async () => {
+                            const email = prompt("Nhập email người dùng để gửi link đổi mật khẩu:");
+                            if (!email) return;
+                            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                              redirectTo: window.location.origin + "/dang-nhap",
+                            });
+                            if (error) toast({ title: "Lỗi", description: error.message, variant: "destructive" });
+                            else toast({ title: "✅ Đã gửi link đổi mật khẩu!" });
+                          }}
+                          className="px-3 py-1.5 text-xs font-semibold bg-muted text-foreground border border-border rounded-md hover:bg-border transition-colors"
+                        >
+                          <Mail className="w-3 h-3 inline mr-1" />Đổi MK
+                        </button>
                       </div>
                     </td>
                   </tr>
