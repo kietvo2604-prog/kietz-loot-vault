@@ -2,16 +2,18 @@ import { Shield, HelpCircle, Phone } from "lucide-react";
 
 const TopBar = () => {
   return (
-    <div className="gradient-accent py-2 px-4">
+    <div className="gradient-accent py-2 px-4 overflow-hidden">
       <div className="container mx-auto flex items-center justify-between text-sm">
-        <p className="font-semibold tracking-wide text-accent-foreground">
-          🎮 ShopKietZ - Thiên đường ACC Roblox uy tín hàng đầu!
-        </p>
-        <div className="hidden md:flex items-center gap-6 text-accent-foreground">
+        <div className="flex-1 overflow-hidden">
+          <p className="font-semibold tracking-wide text-accent-foreground whitespace-nowrap animate-marquee">
+            🎮 ShopKietZ - Thiên đường ACC Roblox uy tín hàng đầu! &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 🎮 ShopKietZ - Thiên đường ACC Roblox uy tín hàng đầu!
+          </p>
+        </div>
+        <div className="hidden md:flex items-center gap-6 text-accent-foreground shrink-0 ml-4">
           <a href="#policy" className="flex items-center gap-1 hover:underline">
             <Shield className="w-3.5 h-3.5" /> Chính sách
           </a>
-          <a href="#faq" className="flex items-center gap-1 hover:underline">
+          <a href="/faq" className="flex items-center gap-1 hover:underline">
             <HelpCircle className="w-3.5 h-3.5" /> FAQ
           </a>
           <a href="#contact" className="flex items-center gap-1 hover:underline">

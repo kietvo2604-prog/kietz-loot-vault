@@ -252,3 +252,13 @@
 .animate-pulse-neon {
   animation: pulse-neon 2s ease-in-out infinite;
 }
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 12s linear infinite;
+}

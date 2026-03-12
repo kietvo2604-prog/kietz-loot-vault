@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ShoppingCart, Eye, Package, Loader2, Copy, Check } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -22,9 +22,10 @@ interface ProductCardProps {
   stock: number;
   description: string;
   category: string;
+  imageUrl?: string;
 }
 
-const ProductCard = ({ id, name, price, numericPrice, stock, description, category }: ProductCardProps) => {
+const ProductCard = ({ id, name, price, numericPrice, stock, description, category, imageUrl }: ProductCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [buying, setBuying] = useState(false);
@@ -40,7 +41,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleBuy = async () => {
+  const handleBuy = async (quantity: number, discountCode?: string) => {
     if (!user) {
       toast({ title: "Vui lòng đăng nhập", variant: "destructive" });
       return;
@@ -54,31 +55,54 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       return;
     }
     setBuying(true);
+    setShowConfirm(false);
 
-    const { data, error } = await supabase.rpc("purchase_product", {
-      p_user_id: user.id,
-      p_product_id: id,
-    });
+    // Purchase one at a time for quantity
+    const allAccInfos: string[] = [];
+    let lastOrderCode = "";
+    for (let i = 0; i < quantity; i++) {
+      const { data, error } = await supabase.rpc("purchase_product", {
+        p_user_id: user.id,
+        p_product_id: id,
+      });
+
+      if (error) {
+        toast({ title: "Lỗi", description: error.message, variant: "destructive" });
+        setBuying(false);
+        return;
+      }
+
+      const result = data as any;
+      if (!result.success) {
+        if (i > 0) {
+          // Some purchases succeeded
+          toast({ title: `⚠️ Chỉ mua được ${i}/${quantity}`, description: result.error, variant: "destructive" });
+          break;
+        }
+        toast({ title: "❌ " + result.error, variant: "destructive" });
+        setBuying(false);
+        return;
+      }
+
+      if (result.account_info) allAccInfos.push(result.account_info);
+      lastOrderCode = result.order_code;
+    }
+
+    // Update discount code usage
+    if (discountCode) {
+      await supabase.from("discount_codes")
+        .update({ used_count: (await supabase.from("discount_codes").select("used_count").eq("code", discountCode).single()).data?.used_count + 1 || 1 })
+        .eq("code", discountCode);
+    }
 
     setBuying(false);
 
-    if (error) {
-      toast({ title: "Lỗi", description: error.message, variant: "destructive" });
-      return;
-    }
-
-    const result = data as any;
-    if (!result.success) {
-      toast({ title: "❌ " + result.error, variant: "destructive" });
-      return;
-    }
-
-    if (result.account_info) {
-      setPurchasedAccInfo(result.account_info);
-      setPurchasedOrderCode(result.order_code);
+    if (allAccInfos.length > 0) {
+      setPurchasedAccInfo(allAccInfos.join("\n---\n"));
+      setPurchasedOrderCode(lastOrderCode);
       setShowAccDialog(true);
     } else {
-      toast({ title: "✅ Mua hàng thành công!", description: `Mã đơn: ${result.order_code}` });
+      toast({ title: "✅ Mua hàng thành công!", description: `Mã đơn: ${lastOrderCode}` });
       window.location.href = "/lich-su?tab=orders";
     }
   };
@@ -95,6 +119,12 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
             </span>
           </div>
         </div>
+
+        {imageUrl && (
+          <div className="aspect-video w-full overflow-hidden bg-muted">
+            <img src={imageUrl} alt={name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          </div>
+        )}
 
         <div className="p-4 space-y-3">
           <h3 className="font-semibold text-foreground text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
@@ -128,6 +158,8 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
         onOpenChange={setShowConfirm}
         productName={name}
         price={price}
+        numericPrice={numericPrice || 0}
+        stock={stock}
         onConfirm={handleBuy}
         buying={buying}
       />

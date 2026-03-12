@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
@@ -19,16 +20,23 @@ interface Product {
   stock: number;
   description: string | null;
   category: string;
+  image_url: string | null;
 }
 
 type Category = { id: string; name: string; slug: string };
 
 const Index = () => {
+  const [searchParams] = useSearchParams();
   const [activeCategory, setActiveCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const s = searchParams.get("search");
+    if (s) setSearchQuery(s);
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -109,6 +117,7 @@ const Index = () => {
                   stock: p.stock,
                   description: p.description || "",
                   category: p.category,
+                  imageUrl: p.image_url || undefined,
                 }))}
               />
             );

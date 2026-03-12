@@ -11,6 +11,8 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import OrderDetail from "./pages/OrderDetail";
 import ProductDetail from "./pages/ProductDetail";
+import FAQ from "./pages/FAQ";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ClickSparkle from "./components/ClickSparkle";
 
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/don-hang/:id" element={<OrderDetail />} />
             <Route path="/san-pham/:id" element={<ProductDetail />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/trang-ca-nhan" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -244,7 +244,9 @@ const ProductDetail = () => {
         onOpenChange={setShowConfirm}
         productName={product.name}
         price={formatVND(product.price)}
-        onConfirm={handleBuy}
+        numericPrice={product.price}
+        stock={product.stock}
+        onConfirm={(qty, code) => handleBuy()}
         buying={buying}
       />
     </div>

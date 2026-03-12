@@ -1,6 +1,6 @@
 import { Search, ShoppingCart, User, Gamepad2, ChevronDown, LogOut, Wallet, Shield } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "./ThemeToggle";
 import AnimatedLogo from "./AnimatedLogo";
@@ -8,6 +8,7 @@ import AnimatedLogo from "./AnimatedLogo";
 const Header = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   const [searchQuery, setSearchQuery] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -42,6 +43,13 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   return (
@@ -55,7 +63,7 @@ const Header = () => {
           </a>
 
           {/* Search */}
-          <div className="flex-1 max-w-xl hidden md:block">
+          <form onSubmit={handleSearch} className="flex-1 max-w-xl hidden md:block">
             <div className="relative">
               <input
                 type="text"
@@ -64,21 +72,15 @@ const Header = () => {
                 placeholder="Tìm kiếm sản phẩm..."
                 className="w-full bg-muted border border-border rounded-lg py-2.5 pl-4 pr-12 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
               />
-              <button className="absolute right-1 top-1 bottom-1 px-3 gradient-primary rounded-md flex items-center justify-center hover:opacity-90 transition-opacity">
+              <button type="submit" className="absolute right-1 top-1 bottom-1 px-3 gradient-primary rounded-md flex items-center justify-center hover:opacity-90 transition-opacity">
                 <Search className="w-4 h-4 text-primary-foreground" />
               </button>
             </div>
-          </div>
+          </form>
 
           {/* Actions */}
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <button className="relative p-2 rounded-lg bg-muted hover:bg-border transition-colors">
-              <ShoppingCart className="w-5 h-5 text-foreground" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 gradient-accent rounded-full text-xs flex items-center justify-center font-bold text-accent-foreground">
-                0
-              </span>
-            </button>
 
             {user ? (
               <div className="relative" ref={userMenuRef}>
@@ -105,8 +107,11 @@ const Header = () => {
                         </p>
                       )}
                     </div>
+                    <a href="/trang-ca-nhan" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
+                      <User className="w-4 h-4" /> Trang cá nhân
+                    </a>
                     <a href="/lich-su" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                      <User className="w-4 h-4" /> Tài khoản
+                      <Wallet className="w-4 h-4" /> Lịch sử giao dịch
                     </a>
                     {isAdmin && (
                       <a href="/admin" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-neon-orange hover:bg-muted transition-colors">
@@ -140,27 +145,12 @@ const Header = () => {
             { name: "Trang chủ", href: "/", match: "/" },
             { name: "Sản phẩm", href: "/#products", match: "/#products" },
             { name: "Nạp tiền", href: "/nap-tien", match: "/nap-tien" },
-            { name: "Lịch sử", href: "#", dropdown: true, match: "/lich-su" },
-          ].map((item: any) => {
-            const isActive = item.dropdown
-              ? currentPath.startsWith("/lich-su")
-              : item.match === "/" ? currentPath === "/" : currentPath.startsWith(item.match);
+            { name: "Lịch sử", href: "/lich-su", match: "/lich-su" },
+            { name: "FAQ", href: "/faq", match: "/faq" },
+          ].map((item) => {
+            const isActive = item.match === "/" ? currentPath === "/" : currentPath.startsWith(item.match);
 
-            return item.dropdown ? (
-              <div key={item.name} className="relative" ref={historyRef}>
-                <a
-                  href="/lich-su"
-                  onClick={(e) => { e.preventDefault(); window.location.href = "/lich-su"; }}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all inline-block ${
-                    isActive
-                      ? "gradient-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {item.name}
-                </a>
-              </div>
-            ) : (
+            return (
               <a
                 key={item.name}
                 href={item.href}
