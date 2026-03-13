@@ -41,31 +41,31 @@ const RecentPurchases = () => {
   if (purchases.length === 0) return null;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 neon-card">
-      <div className="flex items-center gap-2 mb-4">
-        <ShoppingBag className="w-5 h-5 text-primary" />
-        <h2 className="font-display text-lg font-bold text-foreground">LỊCH SỬ MUA GẦN ĐÂY</h2>
+    <div className="bg-card border border-border rounded-xl p-4 neon-card h-full">
+      <div className="flex items-center gap-2 mb-3">
+        <ShoppingBag className="w-4 h-4 text-primary" />
+        <h2 className="font-display text-sm font-bold text-foreground">LỊCH SỬ MUA GẦN ĐÂY</h2>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {purchases.map((p, i) => (
-          <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50">
-            <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden shrink-0">
+          <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+            <div className="w-6 h-6 rounded-full bg-muted border border-border overflow-hidden shrink-0">
               {p.avatar_url ? (
                 <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
+                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                   {(p.display_name || "?")[0]}
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">{maskName(p.display_name)} <span className="text-muted-foreground">đã mua</span> {p.product_name}</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">{p.product_category}</span>
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(p.created_at)}</span>
+              <p className="text-xs font-medium text-foreground truncate">{maskName(p.display_name)} <span className="text-muted-foreground">đã mua</span> {p.product_name}</p>
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <span className="px-1 py-0.5 bg-muted rounded">{p.product_category}</span>
+                <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{timeAgo(p.created_at)}</span>
               </div>
             </div>
-            <span className="text-sm font-bold text-primary font-mono shrink-0">{formatVND(p.price)}</span>
+            <span className="text-xs font-bold text-primary font-mono shrink-0">{formatVND(p.price)}</span>
           </div>
         ))}
       </div>

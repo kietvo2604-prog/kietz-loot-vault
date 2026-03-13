@@ -65,32 +65,32 @@ const RecentTopups = () => {
   if (topups.length === 0) return null;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 neon-card h-full">
-      <div className="flex items-center gap-2 mb-4">
-        <Wallet className="w-5 h-5 text-green-500" />
-        <h2 className="font-display text-lg font-bold text-foreground">LỊCH SỬ NẠP GẦN ĐÂY</h2>
+    <div className="bg-card border border-border rounded-xl p-4 neon-card h-full">
+      <div className="flex items-center gap-2 mb-3">
+        <Wallet className="w-4 h-4 text-accent" />
+        <h2 className="font-display text-sm font-bold text-foreground">LỊCH SỬ NẠP GẦN ĐÂY</h2>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {topups.map((t, i) => (
-          <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50">
-            <div className="w-8 h-8 rounded-full bg-muted border border-border overflow-hidden shrink-0">
+          <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
+            <div className="w-6 h-6 rounded-full bg-muted border border-border overflow-hidden shrink-0">
               {t.avatar_url ? (
                 <img src={t.avatar_url} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
+                <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-muted-foreground">
                   {(t.display_name || "?")[0]}
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-xs font-medium text-foreground truncate">
                 {maskName(t.display_name)} <span className="text-muted-foreground">đã nạp</span>
               </p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(t.created_at)}</span>
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{timeAgo(t.created_at)}</span>
               </div>
             </div>
-            <span className="text-sm font-bold text-green-500 font-mono shrink-0">+{formatVND(t.amount)}</span>
+            <span className="text-xs font-bold text-accent font-mono shrink-0">+{formatVND(t.amount)}</span>
           </div>
         ))}
       </div>
