@@ -76,15 +76,16 @@ const AdminOrders = () => {
         </div>
       </div>
 
+      {/* Group orders by order_code */}
       <div className="bg-card border border-border rounded-xl overflow-hidden neon-card">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="border-b border-border bg-muted/50">
                 <th className="text-left px-4 py-3 font-semibold text-foreground">Mã đơn</th>
                 <th className="text-left px-4 py-3 font-semibold text-foreground">Sản phẩm</th>
-                <th className="text-left px-4 py-3 font-semibold text-foreground">Danh mục</th>
-                <th className="text-left px-4 py-3 font-semibold text-foreground">Giá</th>
+                <th className="text-left px-4 py-3 font-semibold text-foreground">SL</th>
+                <th className="text-left px-4 py-3 font-semibold text-foreground">Tổng giá</th>
                 <th className="text-left px-4 py-3 font-semibold text-foreground">Thời gian</th>
                 <th className="text-right px-4 py-3 font-semibold text-foreground">Hành động</th>
               </tr>
@@ -92,27 +93,25 @@ const AdminOrders = () => {
             <tbody>
               {loading ? (
                 <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Đang tải...</td></tr>
-              ) : filtered.length === 0 ? (
+              ) : groupedOrders.length === 0 ? (
                 <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">
                   {search ? "Không tìm thấy đơn hàng" : "Chưa có đơn hàng"}
                 </td></tr>
               ) : (
-                filtered.map((o) => (
-                  <tr key={o.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                groupedOrders.map((group) => (
+                  <tr key={group.order_code} className="border-b border-border hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
-                      <span className="font-mono font-bold text-primary text-xs">{o.order_code || o.id.slice(0, 8).toUpperCase()}</span>
+                      <span className="font-mono font-bold text-primary text-xs">{group.order_code}</span>
                     </td>
-                    <td className="px-4 py-3 text-foreground font-medium max-w-[200px] truncate">{o.product_name}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 bg-muted rounded text-xs font-medium text-muted-foreground">{o.product_category}</span>
-                    </td>
-                    <td className="px-4 py-3 text-destructive font-mono font-bold">{formatVND(o.price)}</td>
+                    <td className="px-4 py-3 text-foreground font-medium max-w-[200px] truncate">{group.orders[0].product_name}</td>
+                    <td className="px-4 py-3 text-foreground font-bold">{group.orders.length}</td>
+                    <td className="px-4 py-3 text-destructive font-mono font-bold">{formatVND(group.totalPrice)}</td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(o.created_at).toLocaleString("vi-VN")}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(group.orders[0].created_at).toLocaleString("vi-VN")}</span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => { setSelectedOrder(o); setEditingAccInfo(false); setAccInfoDraft(o.account_info || ""); }}
+                        onClick={() => { setSelectedGroup(group); setEditingAccInfo(false); }}
                         className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                         title="Xem chi tiết"
                       >
