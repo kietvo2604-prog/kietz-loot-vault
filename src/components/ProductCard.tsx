@@ -95,6 +95,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       // Update all orders from this batch to use the same order code
       if (result.order_id) {
         await supabase.from("orders").update({ order_code: batchOrderCode } as any).eq("id", result.order_id);
+        if (i === 0) setPurchasedOrderId(result.order_id);
       }
       orderCode = batchOrderCode;
     }
