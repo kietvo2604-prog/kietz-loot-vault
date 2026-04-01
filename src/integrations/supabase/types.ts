@@ -260,10 +260,12 @@ export type Database = {
       topup_requests: {
         Row: {
           amount: number
+          card_result: string | null
           created_at: string
           id: string
           method: string
           note: string | null
+          request_id: string | null
           reviewed_by: string | null
           status: string
           updated_at: string
@@ -271,10 +273,12 @@ export type Database = {
         }
         Insert: {
           amount: number
+          card_result?: string | null
           created_at?: string
           id?: string
           method: string
           note?: string | null
+          request_id?: string | null
           reviewed_by?: string | null
           status?: string
           updated_at?: string
@@ -282,10 +286,12 @@ export type Database = {
         }
         Update: {
           amount?: number
+          card_result?: string | null
           created_at?: string
           id?: string
           method?: string
           note?: string | null
+          request_id?: string | null
           reviewed_by?: string | null
           status?: string
           updated_at?: string

@@ -73,22 +73,56 @@ const TopUp = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("topup_requests").insert({
+
+    // Map card type to telco code
+    const telcoMap: Record<string, string> = { viettel: "VIETTEL", vinaphone: "VINAPHONE", mobifone: "MOBIFONE" };
+    const telco = telcoMap[selectedCard];
+
+    // 1. Create topup_request first
+    const { data: insertData, error: insertError } = await supabase.from("topup_requests").insert({
       user_id: user.id,
       amount: selectedDenom,
       method: `Thẻ cào ${currentCard.name}`,
       note: `Seri: ${serial} | Mã: ${code} | Mệnh giá: ${selectedDenom.toLocaleString("vi-VN")}đ`,
-    });
-    setSubmitting(false);
-    if (error) {
+    }).select("id").single();
+
+    if (insertError || !insertData) {
+      setSubmitting(false);
       toast({ title: "Lỗi", description: "Không thể gửi yêu cầu. Vui lòng thử lại.", variant: "destructive" });
-    } else {
-      toast({ title: "✅ Đã gửi yêu cầu nạp thẻ", description: `Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang chờ Admin xử lý.` });
-      setSuccessMessage(`✅ Đã gửi yêu cầu nạp thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)}. Đang chờ Admin xử lý, vui lòng đợi!`);
-      setSerial("");
-      setCode("");
-      setErrors({});
+      return;
     }
+
+    // 2. Send card to API for auto-processing
+    try {
+      const { data: apiResult, error: apiError } = await supabase.functions.invoke("charge-card", {
+        body: {
+          telco,
+          code,
+          serial,
+          amount: selectedDenom,
+          user_id: user.id,
+          topup_request_id: insertData.id,
+        },
+      });
+
+      if (apiError) {
+        console.error("API error:", apiError);
+        toast({ title: "⚠️ Đã gửi thẻ", description: "Thẻ đang được xử lý tự động. Vui lòng chờ kết quả." });
+      } else {
+        toast({ title: "✅ Đã gửi thẻ cào", description: `Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang được xử lý tự động. Kết quả sẽ cập nhật trong vài giây.` });
+      }
+
+      setSuccessMessage(`✅ Thẻ ${currentCard.name} mệnh giá ${formatVND(selectedDenom)} đang được hệ thống xử lý tự động. Kết quả sẽ cập nhật trong lịch sử nạp tiền.`);
+    } catch (err) {
+      console.error("charge-card invoke error:", err);
+      toast({ title: "⚠️ Đã gửi thẻ", description: "Thẻ đang được xử lý. Vui lòng kiểm tra lịch sử nạp tiền." });
+      setSuccessMessage(`⏳ Thẻ ${currentCard.name} đã gửi. Vui lòng kiểm tra trạng thái trong lịch sử nạp tiền.`);
+    }
+
+    setSerial("");
+    setCode("");
+    setErrors({});
+    setSubmitting(false);
   };
 
   const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
