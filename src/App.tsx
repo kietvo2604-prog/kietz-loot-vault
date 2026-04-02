@@ -45,6 +45,7 @@ const App = () => (
             <Route path="/san-pham/:id" element={<ProductDetail />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/trang-ca-nhan" element={<Profile />} />
+            <Route path="/quy-dinh-nap-the" element={<CardRegulations />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
