@@ -142,44 +142,45 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       />
 
       {/* Success dialog - account info hidden */}
-      <Dialog open={showAccDialog} onOpenChange={setShowAccDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-primary flex items-center gap-2">✅ Mua hàng thành công!</DialogTitle>
-            <DialogDescription>Đơn hàng đã được tạo. Xem chi tiết đơn hàng để lấy thông tin tài khoản.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="bg-muted border border-border rounded-lg p-4">
-              <p className="text-xs text-muted-foreground mb-1 font-semibold">Sản phẩm:</p>
-              <p className="text-sm text-foreground font-medium">{name} (x{purchasedQuantity})</p>
+      {showAccDialog && (
+        <Dialog open={showAccDialog} onOpenChange={setShowAccDialog}>
+          <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+            <DialogHeader>
+              <DialogTitle className="text-primary flex items-center gap-2">✅ Mua hàng thành công!</DialogTitle>
+              <DialogDescription>Đơn hàng đã được tạo. Xem chi tiết đơn hàng để lấy thông tin tài khoản.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="bg-muted border border-border rounded-lg p-4">
+                <p className="text-xs text-muted-foreground mb-1 font-semibold">Sản phẩm:</p>
+                <p className="text-sm text-foreground font-medium">{name} (x{purchasedQuantity})</p>
+              </div>
+              <div className="bg-muted border border-border rounded-lg p-4">
+                <p className="text-xs text-muted-foreground mb-1 font-semibold">Mã đơn:</p>
+                <p className="text-sm text-primary font-mono font-bold">{purchasedOrderCode}</p>
+              </div>
+              <div className="bg-muted border border-border rounded-lg p-4">
+                <p className="text-xs text-muted-foreground mb-1 font-semibold">Thông tin tài khoản:</p>
+                <p className="text-sm text-muted-foreground">●●●●●●●● (đã ẩn)</p>
+                <p className="text-xs text-muted-foreground mt-1">Bấm "Xem chi tiết" để xem thông tin tài khoản đầy đủ.</p>
+              </div>
             </div>
-            <div className="bg-muted border border-border rounded-lg p-4">
-              <p className="text-xs text-muted-foreground mb-1 font-semibold">Mã đơn:</p>
-              <p className="text-sm text-primary font-mono font-bold">{purchasedOrderCode}</p>
-            </div>
-            <div className="bg-muted border border-border rounded-lg p-4">
-              <p className="text-xs text-muted-foreground mb-1 font-semibold">Thông tin tài khoản:</p>
-              <p className="text-sm text-muted-foreground">●●●●●●●● (đã ẩn)</p>
-              <p className="text-xs text-muted-foreground mt-1">Bấm "Xem chi tiết" để xem thông tin tài khoản đầy đủ.</p>
-            </div>
-          </div>
-          <DialogFooter className="flex gap-2 sm:gap-2">
-            <button onClick={() => { setShowAccDialog(false); window.location.href = `/don-hang/${purchasedOrderId}`; }}
-              className="flex items-center gap-2 px-4 py-2 gradient-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
-              <Eye className="w-4 h-4" />
-              Xem chi tiết
-            </button>
-            <button onClick={() => { setShowAccDialog(false); window.location.reload(); }}
-              className="px-4 py-2 gradient-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
-              Mua thêm
-            </button>
-            <button onClick={() => { setShowAccDialog(false); window.location.href = "/lich-su?tab=orders"; }}
-              className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-semibold hover:bg-border transition-colors">
-              Lịch sử giao dịch
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Link to={`/don-hang/${purchasedOrderId}`} onClick={() => setShowAccDialog(false)}
+                className="flex items-center justify-center gap-2 px-4 py-2 gradient-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+                <Eye className="w-4 h-4" /> Xem chi tiết
+              </Link>
+              <button onClick={() => { setShowAccDialog(false); window.location.reload(); }}
+                className="px-4 py-2 gradient-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+                Mua thêm
+              </button>
+              <Link to="/lich-su-mua" onClick={() => setShowAccDialog(false)}
+                className="px-4 py-2 bg-muted text-foreground rounded-lg text-sm font-semibold hover:bg-border transition-colors text-center">
+                Lịch sử giao dịch
+              </Link>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 };

@@ -44,7 +44,7 @@ const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) =
             }`}
           >
             {cat.image_url && (
-              <img src={cat.image_url} alt={cat.name} className="w-5 h-5 rounded object-cover" />
+              <img src={cat.image_url} alt={cat.name} className="w-5 h-5 rounded object-contain shrink-0" />
             )}
             {cat.name}
           </button>
