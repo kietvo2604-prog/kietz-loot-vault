@@ -27,7 +27,7 @@ type Category = { id: string; name: string; slug: string };
 
 const Index = () => {
   const [searchParams] = useSearchParams();
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [activeCategory, setActiveCategory] = useState(searchParams.get("cat") || "all");
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -36,6 +36,8 @@ const Index = () => {
   useEffect(() => {
     const s = searchParams.get("search");
     if (s) setSearchQuery(s);
+    const c = searchParams.get("cat");
+    if (c) setActiveCategory(c);
   }, [searchParams]);
 
   useEffect(() => {
