@@ -374,6 +374,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_ctv: { Args: { _user_id: string }; Returns: boolean }
+      is_ctv_for_category: {
+        Args: { _category: string; _user_id: string }
+        Returns: boolean
+      }
       purchase_product: {
         Args: { p_product_id: string; p_user_id: string }
         Returns: Json
