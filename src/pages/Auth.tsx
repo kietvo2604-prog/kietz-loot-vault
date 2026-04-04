@@ -114,7 +114,7 @@ const Auth = () => {
           )}
 
           <form onSubmit={forgotPassword ? handleForgotPassword : handleSubmit} className="space-y-4">
-            {!isLogin && (
+            {!isLogin && !forgotPassword && (
               <div>
                 <label className="text-sm font-medium text-foreground mb-1.5 block">Tên hiển thị</label>
                 <div className="relative">
