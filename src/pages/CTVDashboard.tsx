@@ -349,6 +349,7 @@ const CTVDashboard = () => {
                     showPasswords={showPasswords}
                     onTogglePassword={(id) => setShowPasswords(p => ({ ...p, [id]: !p[id] }))}
                     onDeleteAccount={(accId) => handleDeleteAccount(accId, product.id)}
+                    onDeleteProduct={() => handleDeleteProduct(product.id)}
                     maskPassword={maskPassword}
                     addAccountsProductId={addAccountsProductId}
                     onShowAddAccounts={() => { setAddAccountsProductId(product.id); setNewAccountLines(""); }}
