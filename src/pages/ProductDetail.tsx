@@ -190,7 +190,35 @@ const ProductDetail = () => {
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">Mô tả</label>
                   <textarea value={editForm.description || ""} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData('text');
+                      if (text && IMAGE_URL_REGEX.test(text)) {
+                        e.preventDefault();
+                        const textarea = e.target as HTMLTextAreaElement;
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const current = editForm.description || "";
+                        const newVal = current.substring(0, start) + text + current.substring(end);
+                        setEditForm({ ...editForm, description: newVal });
+                      }
+                    }}
                     rows={3} className="w-full bg-muted border border-border rounded-lg py-2.5 px-4 text-foreground text-sm focus:outline-none focus:border-primary transition-all resize-none" />
+                  <div className="flex items-center gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = prompt("Nhập link ảnh (URL):");
+                        if (url && url.trim()) {
+                          const current = editForm.description || "";
+                          setEditForm({ ...editForm, description: current + (current ? "\n" : "") + url.trim() });
+                        }
+                      }}
+                      className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+                    >
+                      <ImagePlus className="w-3 h-3" /> Chèn link ảnh
+                    </button>
+                    <span className="text-xs text-muted-foreground">Paste link ảnh trực tiếp vào mô tả</span>
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-muted-foreground mb-1 block">Thông tin tài khoản (Tk:Mk)</label>
