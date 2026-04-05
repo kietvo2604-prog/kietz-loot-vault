@@ -19,9 +19,12 @@ const Header = () => {
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!user) { setIsAdmin(false); setBalance(null); return; }
+    if (!user) { setIsAdmin(false); setIsCTV(false); setBalance(null); return; }
     supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").then(({ data }) => {
       setIsAdmin(!!(data && data.length > 0));
+    });
+    supabase.from("ctv_assignments").select("id").eq("is_active", true).then(({ data }) => {
+      setIsCTV(!!(data && data.length > 0));
     });
     supabase.from("profiles").select("balance").eq("user_id", user.id).single().then(({ data }) => {
       setBalance(data?.balance ?? 0);
