@@ -189,6 +189,14 @@ const CTVDashboard = () => {
     fetchProducts();
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    if (!confirm("Xoá sản phẩm này?")) return;
+    await supabase.from("product_accounts").delete().eq("product_id", productId);
+    await supabase.from("products").delete().eq("id", productId);
+    toast({ title: "✅ Đã xoá sản phẩm!" });
+    fetchProducts();
+  };
+
   const filteredProducts = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchCat = selectedCategory === "all" || p.category === selectedCategory;
