@@ -77,9 +77,34 @@ const AdminCategories = () => {
     fetchCategories();
   };
 
+  const toggleCategoryProducts = async (categoryName: string) => {
+    if (expandedCategory === categoryName) {
+      setExpandedCategory(null);
+      return;
+    }
+    setExpandedCategory(categoryName);
+    if (!categoryProducts[categoryName]) {
+      setLoadingProducts(true);
+      const { data } = await supabase.from("products").select("id, name, price, stock, status").eq("category", categoryName).order("created_at", { ascending: false });
+      setCategoryProducts(prev => ({ ...prev, [categoryName]: data || [] }));
+      setLoadingProducts(false);
+    }
+  };
+
+  const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
+
+  const filteredCategories = categories.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+
   return (
     <div className="space-y-6">
       <h1 className="font-display text-2xl font-bold text-primary neon-text">QUẢN LÝ DANH MỤC</h1>
+
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Tìm tên danh mục..."
+          className="w-full bg-muted border border-border rounded-lg py-2 pl-9 pr-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm" />
+      </div>
 
       {/* Add form */}
       <div className="bg-card border border-border rounded-xl p-4 neon-card space-y-3">
