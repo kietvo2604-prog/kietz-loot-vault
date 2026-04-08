@@ -158,58 +158,100 @@ const AdminCategories = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Đang tải...</td></tr>
-            ) : categories.length === 0 ? (
-              <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Chưa có danh mục</td></tr>
-            ) : categories.map((c) => (
-              <tr key={c.id} className="border-b border-border hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3 text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <GripVertical className="w-4 h-4" />
-                    {c.sort_order}
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  {editing?.id === c.id ? (
-                    <input value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)}
-                      placeholder="Link ảnh..."
-                      className="bg-muted border border-border rounded px-2 py-1 text-sm w-full" />
-                  ) : c.image_url ? (
-                    <img src={c.image_url} alt={c.name} className="w-8 h-8 rounded object-cover" />
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-foreground font-medium">
-                  {editing?.id === c.id ? (
-                    <input value={editName} onChange={(e) => setEditName(e.target.value)}
-                      className="bg-muted border border-border rounded px-2 py-1 text-sm w-full" />
-                  ) : c.name}
-                </td>
-                <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
-                  {editing?.id === c.id ? (
-                    <input value={editSlug} onChange={(e) => setEditSlug(e.target.value)}
-                      className="bg-muted border border-border rounded px-2 py-1 text-sm w-full font-mono" />
-                  ) : c.slug}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {editing?.id === c.id ? (
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={handleUpdate} className="px-3 py-1.5 gradient-primary text-primary-foreground rounded text-xs font-semibold">Lưu</button>
-                      <button onClick={() => setEditing(null)} className="px-3 py-1.5 bg-muted text-muted-foreground rounded text-xs">Huỷ</button>
+              <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">Đang tải...</td></tr>
+            ) : filteredCategories.length === 0 ? (
+              <tr><td colSpan={6} className="text-center py-8 text-muted-foreground">{searchQuery ? "Không tìm thấy danh mục" : "Chưa có danh mục"}</td></tr>
+            ) : filteredCategories.map((c) => (
+              <React.Fragment key={c.id}>
+                <tr className="border-b border-border hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3 text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="w-4 h-4" />
+                      {c.sort_order}
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => startEdit(c)} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(c.id)} className="p-2 rounded-lg hover:bg-muted transition-colors text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
+                  </td>
+                  <td className="px-4 py-3">
+                    {editing?.id === c.id ? (
+                      <input value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)}
+                        placeholder="Link ảnh..."
+                        className="bg-muted border border-border rounded px-2 py-1 text-sm w-full" />
+                    ) : c.image_url ? (
+                      <img src={c.image_url} alt={c.name} className="w-8 h-8 rounded object-cover" />
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-foreground font-medium">
+                    {editing?.id === c.id ? (
+                      <input value={editName} onChange={(e) => setEditName(e.target.value)}
+                        className="bg-muted border border-border rounded px-2 py-1 text-sm w-full" />
+                    ) : c.name}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs">
+                    {editing?.id === c.id ? (
+                      <input value={editSlug} onChange={(e) => setEditSlug(e.target.value)}
+                        className="bg-muted border border-border rounded px-2 py-1 text-sm w-full font-mono" />
+                    ) : c.slug}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button onClick={() => toggleCategoryProducts(c.name)}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                      <Package className="w-3.5 h-3.5" />
+                      <span>Xem SP</span>
+                      {expandedCategory === c.name ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {editing?.id === c.id ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={handleUpdate} className="px-3 py-1.5 gradient-primary text-primary-foreground rounded text-xs font-semibold">Lưu</button>
+                        <button onClick={() => setEditing(null)} className="px-3 py-1.5 bg-muted text-muted-foreground rounded text-xs">Huỷ</button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => startEdit(c)} className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(c.id)} className="p-2 rounded-lg hover:bg-muted transition-colors text-destructive">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+                {expandedCategory === c.name && (
+                  <tr>
+                    <td colSpan={6} className="bg-muted/20 px-4 py-3">
+                      {loadingProducts ? (
+                        <p className="text-xs text-muted-foreground">Đang tải sản phẩm...</p>
+                      ) : !categoryProducts[c.name] || categoryProducts[c.name].length === 0 ? (
+                        <p className="text-xs text-muted-foreground">Chưa có sản phẩm nào trong danh mục này.</p>
+                      ) : (
+                        <div className="space-y-1 max-h-60 overflow-y-auto">
+                          <p className="text-xs font-bold text-foreground mb-2">
+                            <Package className="w-3.5 h-3.5 inline mr-1 text-primary" />
+                            {categoryProducts[c.name].length} sản phẩm
+                          </p>
+                          {categoryProducts[c.name].map((p: any) => (
+                            <div key={p.id} className="flex items-center justify-between bg-card border border-border rounded-lg px-3 py-2">
+                              <span className="text-sm text-foreground font-medium truncate">{p.name}</span>
+                              <div className="flex items-center gap-3 shrink-0 text-xs">
+                                <span className="font-mono text-primary font-bold">{formatVND(p.price)}</span>
+                                <span className={p.stock === 0 ? "text-destructive font-bold" : "text-muted-foreground"}>
+                                  {p.stock === 0 ? "Hết hàng" : `Kho: ${p.stock}`}
+                                </span>
+                                <span className={`px-1.5 py-0.5 rounded text-xs ${p.status === 'active' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                                  {p.status === 'active' ? 'Đang bán' : 'Ẩn'}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
