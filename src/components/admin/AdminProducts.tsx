@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Pencil, Trash2, Package, Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, Package, Eye, EyeOff, ChevronDown, ChevronUp, Search } from "lucide-react";
 import ImagePasteUpload from "@/components/ImagePasteUpload";
 
 type Product = {
@@ -158,6 +158,12 @@ const AdminProducts = () => {
           <Plus className="w-4 h-4" /> Thêm sản phẩm
         </button>
       </div>
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Tìm tên sản phẩm..."
+          className="w-full bg-muted border border-border rounded-lg py-2 pl-9 pr-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm" />
+      </div>
 
       {showForm && (
         <div className="bg-card border border-border rounded-xl p-6 neon-card animate-slide-up space-y-4">
@@ -234,9 +240,11 @@ const AdminProducts = () => {
             <tbody>
               {loading ? (
                 <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Đang tải...</td></tr>
-              ) : products.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">Chưa có sản phẩm</td></tr>
-              ) : products.map((p) => (
+              ) : (() => {
+                const filtered = products.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+                return filtered.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-8 text-muted-foreground">{searchQuery ? "Không tìm thấy sản phẩm" : "Chưa có sản phẩm"}</td></tr>
+              ) : filtered.map((p) => (
                 <>
                   <tr key={p.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 text-foreground font-medium max-w-[250px] truncate">{p.name}</td>
