@@ -1,0 +1,1 @@
+INSERT INTO public.shop_settings (key, value) VALUES ('shop_description', '') ON CONFLICT (key) DO NOTHING;
