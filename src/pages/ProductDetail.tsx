@@ -245,7 +245,7 @@ const ProductDetail = () => {
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-border">
                     <span className="text-sm text-muted-foreground">Giá</span>
-                    <span className="text-xl font-semibold text-primary">{formatVND(product.price)}</span>
+                    <span className="text-xl font-semibold text-yellow-500">{formatVND(product.price)}</span>
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-border">
                     <span className="text-sm text-muted-foreground">Tồn kho</span>
