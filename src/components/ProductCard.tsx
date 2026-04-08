@@ -110,7 +110,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
           <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
 
           <div className="flex items-center justify-between pt-2 border-t border-border">
-            <span className="font-display text-lg font-bold text-neon-orange">{price}</span>
+            <span className="text-lg font-semibold text-primary">{price}</span>
             <div className="flex gap-2">
               {id && (
                 <Link to={`/san-pham/${id}`} className="p-2 rounded-lg bg-muted hover:bg-border transition-colors" title="Chi tiết">
