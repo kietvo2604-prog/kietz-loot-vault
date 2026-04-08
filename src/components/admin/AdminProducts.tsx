@@ -195,9 +195,10 @@ const AdminProducts = () => {
             placeholder="Dán ảnh hoặc nhập link..."
           />
           <div>
-            <label className="text-sm font-medium text-foreground mb-1 block">Mô tả</label>
-            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2}
-              className="w-full bg-muted border border-border rounded-lg py-2.5 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-sm resize-none" />
+            <label className="text-sm font-medium text-foreground mb-1 block">Mô tả (mỗi dòng = 1 dòng mô tả)</label>
+            <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={6}
+              placeholder="Dòng 1&#10;Dòng 2&#10;Dòng 3"
+              className="w-full bg-muted border border-border rounded-lg py-3 px-4 text-foreground focus:outline-none focus:border-primary transition-all text-base leading-relaxed resize-y" />
           </div>
           <div>
             <label className="text-sm font-medium text-foreground mb-1 block">
