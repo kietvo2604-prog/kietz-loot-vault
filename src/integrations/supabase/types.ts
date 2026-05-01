@@ -383,24 +383,15 @@ export type Database = {
         Args: { p_product_id: string; p_user_id: string }
         Returns: Json
       }
-      purchase_product_batch:
-        | {
-            Args: {
-              p_product_id: string
-              p_quantity: number
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_discount_code?: string
-              p_product_id: string
-              p_quantity: number
-              p_user_id: string
-            }
-            Returns: Json
-          }
+      purchase_product_batch: {
+        Args: {
+          p_discount_code?: string
+          p_product_id: string
+          p_quantity: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
