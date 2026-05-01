@@ -55,6 +55,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       p_user_id: user.id,
       p_product_id: id,
       p_quantity: quantity,
+      p_discount_code: discountCode || null,
     });
 
     if (error) {
