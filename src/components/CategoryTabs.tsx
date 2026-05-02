@@ -22,10 +22,10 @@ const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) =
     <div className="flex flex-wrap gap-2">
       <button
         onClick={() => onCategoryChange("all")}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all border ${
           activeCategory === "all"
-            ? "gradient-primary text-primary-foreground neon-border"
-            : "bg-muted text-muted-foreground hover:text-foreground hover:bg-border"
+            ? "bg-yellow-400 text-yellow-950 border-yellow-500 shadow-md"
+            : "bg-card text-foreground border-border hover:border-primary hover:bg-muted"
         }`}
       >
         <Package className="w-4 h-4" />
@@ -37,18 +37,22 @@ const CategoryTabs = ({ activeCategory, onCategoryChange }: CategoryTabsProps) =
           <button
             key={cat.id}
             onClick={() => onCategoryChange(cat.slug)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all border ${
               isActive
-                ? "gradient-primary text-primary-foreground neon-border"
-                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-border"
+                ? "bg-yellow-400 text-yellow-950 border-yellow-500 shadow-md"
+                : "bg-card text-foreground border-border hover:border-primary hover:bg-muted"
             }`}
           >
-            {cat.image_url && (
-              <div className="w-5 h-5 rounded overflow-hidden shrink-0 bg-background flex items-center justify-center">
-                <img src={cat.image_url} alt={cat.name} className="w-full h-full object-contain" />
+            {cat.image_url ? (
+              <div className="w-6 h-6 rounded overflow-hidden shrink-0 bg-background flex items-center justify-center border border-border">
+                <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+              </div>
+            ) : (
+              <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                <Package className="w-3.5 h-3.5 text-primary" />
               </div>
             )}
-            {cat.name}
+            <span className="uppercase">{cat.name}</span>
           </button>
         );
       })}
