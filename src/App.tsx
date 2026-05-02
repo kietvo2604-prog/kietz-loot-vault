@@ -23,6 +23,7 @@ import CTVDashboard from "./pages/CTVDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import ClickSparkle from "./components/ClickSparkle";
 import TopupNotifier from "./components/TopupNotifier";
+import KietzBadge from "./components/KietzBadge";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
         <Sonner />
         <ClickSparkle />
         <TopupNotifier />
+        <KietzBadge />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
