@@ -79,19 +79,6 @@ const Header = () => {
             <AnimatedLogo />
           </a>
 
-          {user && (
-            <button
-              onClick={() => navigate("/nap-tien")}
-              className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-primary bg-primary/5 hover:bg-primary/10 transition-colors shrink-0"
-              title="Nạp tiền"
-            >
-              <Wallet className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-primary">
-                Ví: <span className="text-yellow-500 font-bold">{(balance ?? 0).toLocaleString("vi-VN")}đ</span>
-              </span>
-            </button>
-          )}
-
           <form onSubmit={handleSearch} className="flex-1 max-w-xl hidden md:block">
             <div className="relative">
               <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
