@@ -28,7 +28,7 @@ const AdminCategories = () => {
 
   const fetchCategories = async () => {
     setLoading(true);
-    const { data } = await supabase.from("categories").select("*").order("sort_order");
+    const { data } = await supabase.from("categories").select("*").order("name", { ascending: true });
     setCategories((data as Category[]) || []);
     setLoading(false);
   };

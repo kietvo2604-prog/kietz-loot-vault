@@ -19,7 +19,7 @@ const AdminUsers = () => {
 
   const fetchUsers = async () => {
     setLoading(true);
-    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    const { data } = await supabase.from("profiles").select("*").order("display_name", { ascending: true, nullsFirst: false });
     setUsers(data || []);
     setLoading(false);
   };
