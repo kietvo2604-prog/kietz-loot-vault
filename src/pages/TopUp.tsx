@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import zalopayQR from "@/assets/zalopay-qr.png";
+import mbbankQR from "@/assets/mbbank-qr.png";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -12,7 +13,8 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const banks = [
+const banks: { name: string; number: string; holder: string; qr?: string }[] = [
+  { name: "MB Bank", number: "0987672604", holder: "VO ANH KIET", qr: mbbankQR },
   { name: "BV Bank", number: "99ZP25275M36980652", holder: "ZALOPAY_VO ANH KIET" },
 ];
 
@@ -345,6 +347,11 @@ const TopUp = () => {
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-bold text-foreground">{bank.name}</span>
                     </div>
+                    {bank.qr && (
+                      <div className="my-3 flex justify-center">
+                        <img src={bank.qr} alt={`${bank.name} QR`} className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-muted-foreground">STK: </span>
