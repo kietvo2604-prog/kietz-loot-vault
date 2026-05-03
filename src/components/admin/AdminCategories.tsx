@@ -172,9 +172,13 @@ const AdminCategories = () => {
                   </td>
                   <td className="px-4 py-3">
                     {editing?.id === c.id ? (
-                      <input value={editImageUrl} onChange={(e) => setEditImageUrl(e.target.value)}
-                        placeholder="Link ảnh..."
-                        className="bg-muted border border-border rounded px-2 py-1 text-sm w-full" />
+                      <div className="min-w-[220px]">
+                        <ImagePasteUpload
+                          value={editImageUrl}
+                          onChange={setEditImageUrl}
+                          placeholder="Dán ảnh hoặc nhập link..."
+                        />
+                      </div>
                     ) : c.image_url ? (
                       <img src={c.image_url} alt={c.name} className="w-8 h-8 rounded object-cover" />
                     ) : (
