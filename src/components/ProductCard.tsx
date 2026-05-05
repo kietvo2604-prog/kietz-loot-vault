@@ -106,21 +106,29 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
           <p className="text-xs text-muted-foreground line-clamp-2">{description}</p>
 
           <div className="flex items-center justify-between pt-2 border-t border-border">
-            <span className="text-lg font-semibold text-yellow-500">{price}</span>
+            <span className="text-lg font-semibold text-yellow-500">
+              {user ? price : <span className="text-xs text-muted-foreground italic">Đăng nhập để xem giá</span>}
+            </span>
             <div className="flex gap-2">
               {id && (
                 <Link to={`/san-pham/${id}`} className="p-2 rounded-lg bg-muted hover:bg-border transition-colors" title="Chi tiết">
                   <Eye className="w-4 h-4 text-muted-foreground" />
                 </Link>
               )}
-              <button
-                onClick={() => setShowConfirm(true)}
-                disabled={buying || stock <= 0}
-                className="flex items-center gap-1.5 px-3 py-2 gradient-primary rounded-lg text-xs font-bold text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {buying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShoppingCart className="w-3.5 h-3.5" />}
-                {buying ? "Đang mua..." : stock <= 0 ? "Hết hàng" : "Mua ngay"}
-              </button>
+              {user ? (
+                <button
+                  onClick={() => setShowConfirm(true)}
+                  disabled={buying || stock <= 0}
+                  className="flex items-center gap-1.5 px-3 py-2 gradient-primary rounded-lg text-xs font-bold text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {buying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShoppingCart className="w-3.5 h-3.5" />}
+                  {buying ? "Đang mua..." : stock <= 0 ? "Hết hàng" : "Mua ngay"}
+                </button>
+              ) : (
+                <Link to="/dang-nhap" className="flex items-center gap-1.5 px-3 py-2 gradient-primary rounded-lg text-xs font-bold text-primary-foreground hover:opacity-90 transition-opacity">
+                  <ShoppingCart className="w-3.5 h-3.5" /> Đăng nhập
+                </Link>
+              )}
             </div>
           </div>
         </div>

@@ -18,9 +18,10 @@ const Auth = () => {
     }
   }, [user, loading, navigate]);
   const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -49,25 +50,48 @@ const Auth = () => {
     setMessage("");
 
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      // Login bằng username (không phân biệt hoa thường) → tra email → signIn
+      const uname = username.trim();
+      if (!uname) { setError("Vui lòng nhập tài khoản đăng nhập"); setSubmitting(false); return; }
+
+      const { data: foundEmail, error: rpcErr } = await supabase.rpc("get_email_by_username", { p_username: uname });
+      if (rpcErr || !foundEmail) {
+        setError("Tài khoản không tồn tại");
+        setSubmitting(false);
+        return;
+      }
+      const { error } = await supabase.auth.signInWithPassword({ email: foundEmail as string, password });
       if (error) {
-        setError(error.message);
+        setError("Mật khẩu không đúng");
       } else {
         navigate("/");
       }
     } else {
+      // Đăng ký
+      const uname = username.trim();
+      if (!uname || uname.length < 3) { setError("Tài khoản đăng nhập tối thiểu 3 ký tự"); setSubmitting(false); return; }
+      if (password.length < 6) { setError("Mật khẩu tối thiểu 6 ký tự"); setSubmitting(false); return; }
+      if (password !== confirmPassword) { setError("Mật khẩu nhập lại không khớp"); setSubmitting(false); return; }
+
+      // Check username trùng
+      const { data: avail } = await supabase.rpc("username_available", { p_username: uname });
+      if (avail === false) { setError("Tài khoản đã tồn tại"); setSubmitting(false); return; }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: displayName },
+          data: { username: uname, full_name: uname },
           emailRedirectTo: window.location.origin,
         },
       });
       if (error) {
         setError(error.message);
       } else {
-        setMessage("Đăng ký thành công! Kiểm tra email để xác nhận tài khoản.");
+        setMessage("Đăng ký thành công! Bạn có thể đăng nhập ngay.");
+        setIsLogin(true);
+        setPassword("");
+        setConfirmPassword("");
       }
     }
     setSubmitting(false);
@@ -114,37 +138,44 @@ const Auth = () => {
           )}
 
           <form onSubmit={forgotPassword ? handleForgotPassword : handleSubmit} className="space-y-4">
-            {!isLogin && !forgotPassword && (
+            {/* Username field - dùng cho cả login & register, ẩn khi quên mk */}
+            {!forgotPassword && (
               <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">Tên hiển thị</label>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Tài khoản đăng nhập</label>
                 <div className="relative">
                   <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Nhập tên của bạn..."
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Nhập tài khoản..."
                     required
+                    autoComplete="username"
                     className="w-full bg-muted border border-border rounded-lg py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
                   />
                 </div>
               </div>
             )}
 
-            <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Nhập email..."
-                  required
-                  className="w-full bg-muted border border-border rounded-lg py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
-                />
+            {/* Email - chỉ hiện khi đăng ký hoặc quên mk */}
+            {(!isLogin || forgotPassword) && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">
+                  Địa chỉ Email {!forgotPassword && <span className="text-xs text-muted-foreground font-normal">(dùng để lấy lại tài khoản)</span>}
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Nhập email..."
+                    required
+                    className="w-full bg-muted border border-border rounded-lg py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {!forgotPassword && (
               <div>
@@ -158,6 +189,26 @@ const Auth = () => {
                     placeholder="Nhập mật khẩu..."
                     required
                     minLength={6}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
+                    className="w-full bg-muted border border-border rounded-lg py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
+            {!isLogin && !forgotPassword && (
+              <div>
+                <label className="text-sm font-medium text-foreground mb-1.5 block">Nhập lại mật khẩu</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Nhập lại mật khẩu..."
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
                     className="w-full bg-muted border border-border rounded-lg py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
                   />
                 </div>

@@ -245,7 +245,11 @@ const ProductDetail = () => {
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-border">
                     <span className="text-sm text-muted-foreground">Giá</span>
-                    <span className="text-xl font-semibold text-yellow-500">{formatVND(product.price)}</span>
+                    {user ? (
+                      <span className="text-xl font-semibold text-yellow-500">{formatVND(product.price)}</span>
+                    ) : (
+                      <Link to="/dang-nhap" className="text-sm text-primary hover:underline italic">Đăng nhập để xem giá</Link>
+                    )}
                   </div>
                   <div className="flex justify-between items-center py-3 border-b border-border">
                     <span className="text-sm text-muted-foreground">Tồn kho</span>
@@ -274,14 +278,20 @@ const ProductDetail = () => {
                   </div>
                 )}
 
-                <button
-                  onClick={() => setShowConfirm(true)}
-                  disabled={buying || product.stock <= 0}
-                  className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  {product.stock <= 0 ? "Hết hàng" : "Mua ngay"}
-                </button>
+                {user ? (
+                  <button
+                    onClick={() => setShowConfirm(true)}
+                    disabled={buying || product.stock <= 0}
+                    className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {product.stock <= 0 ? "Hết hàng" : "Mua ngay"}
+                  </button>
+                ) : (
+                  <Link to="/dang-nhap" className="w-full py-3 gradient-primary text-primary-foreground rounded-xl text-sm font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                    <ShoppingCart className="w-5 h-5" /> Đăng nhập để mua
+                  </Link>
+                )}
               </>
             )}
           </div>

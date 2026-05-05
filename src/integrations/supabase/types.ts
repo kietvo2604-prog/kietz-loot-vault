@@ -237,6 +237,7 @@ export type Database = {
           transfer_code: string | null
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -247,6 +248,7 @@ export type Database = {
           transfer_code?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -257,6 +259,7 @@ export type Database = {
           transfer_code?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -347,6 +350,7 @@ export type Database = {
     }
     Functions: {
       generate_transfer_code: { Args: never; Returns: string }
+      get_email_by_username: { Args: { p_username: string }; Returns: string }
       get_recent_purchases: {
         Args: { limit_count?: number }
         Returns: {
@@ -392,6 +396,7 @@ export type Database = {
         }
         Returns: Json
       }
+      username_available: { Args: { p_username: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
