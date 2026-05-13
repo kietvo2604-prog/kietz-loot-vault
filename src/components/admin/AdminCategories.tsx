@@ -11,6 +11,12 @@ type Category = {
   image_url: string | null;
 };
 
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+};
+
 const AdminCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +28,7 @@ const AdminCategories = () => {
   const [editSlug, setEditSlug] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryProducts, setCategoryProducts] = useState<Record<string, any[]>>({});
+  const [categoryProducts, setCategoryProducts] = useState<Record<string, Product[]>>({});
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
@@ -46,7 +52,7 @@ const AdminCategories = () => {
       slug,
       sort_order: maxOrder + 1,
       image_url: newImageUrl.trim() || null,
-    } as any);
+    } as Category);
     setNewName("");
     setNewSlug("");
     setNewImageUrl("");

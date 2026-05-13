@@ -44,7 +44,7 @@ const AdminCTV = () => {
 
   const handleSave = async () => {
     if (!formEmail.trim() || formCategories.length === 0) return;
-    const payload: any = {
+    const payload = {
       email: formEmail.trim().toLowerCase(),
       assigned_categories: formCategories,
       is_active: true,

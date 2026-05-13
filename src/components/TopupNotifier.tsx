@@ -3,6 +3,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface TopupRequest {
+  status: string;
+  amount?: number;
+}
+
 /**
  * Listens to realtime changes on topup_requests for the current user.
  * Shows a toast when a card topup is approved (balance credited).
@@ -25,8 +30,8 @@ const TopupNotifier = () => {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          const newRecord = payload.new as any;
-          const oldRecord = payload.old as any;
+          const newRecord = payload.new as TopupRequest;
+          const oldRecord = payload.old as TopupRequest;
 
           // Only trigger when status changes from pending to approved
           if (oldRecord.status === "pending" && newRecord.status === "approved") {

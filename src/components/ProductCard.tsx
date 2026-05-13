@@ -25,6 +25,14 @@ interface ProductCardProps {
   imageUrl?: string;
 }
 
+interface PurchaseResult {
+  success: boolean;
+  error?: string;
+  quantity?: number;
+  order_code: string;
+  order_id: string;
+}
+
 const ProductCard = ({ id, name, price, numericPrice, stock, description, category, imageUrl }: ProductCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -64,7 +72,7 @@ const ProductCard = ({ id, name, price, numericPrice, stock, description, catego
       return;
     }
 
-    const result = data as any;
+    const result = data as PurchaseResult;
     if (!result.success) {
       toast({ title: "❌ " + result.error, variant: "destructive" });
       setBuying(false);

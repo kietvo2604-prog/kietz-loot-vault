@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -22,16 +22,16 @@ const AdminTopups = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     setLoading(true);
     let query = supabase.from("topup_requests").select("*").order("created_at", { ascending: false });
     if (filter !== "all") query = query.eq("status", filter);
     const { data } = await query;
     setRequests(data || []);
     setLoading(false);
-  };
+  }, [filter]);
 
-  useEffect(() => { fetchRequests(); }, [filter]);
+  useEffect(() => { fetchRequests(); }, [fetchRequests]);
 
   const calculateCredit = (amount: number, method: string): number => {
     const isCard = method.toLowerCase().includes("thẻ cào");

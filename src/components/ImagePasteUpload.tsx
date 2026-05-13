@@ -22,8 +22,12 @@ const ImagePasteUpload = ({ value, onChange, placeholder = "Dán ảnh hoặc nh
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("images").getPublicUrl(fileName);
       onChange(urlData.publicUrl);
-    } catch (e: any) {
-      console.error("Upload error:", e);
+    } catch (e: Error | unknown) {
+      if (e instanceof Error) {
+        console.error("Upload error:", e.message);
+      } else {
+        console.error("Upload error:", e);
+      }
     } finally {
       setUploading(false);
     }

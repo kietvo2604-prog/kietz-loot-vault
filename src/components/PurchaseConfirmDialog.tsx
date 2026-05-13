@@ -21,12 +21,20 @@ interface PurchaseConfirmDialogProps {
   buying: boolean;
 }
 
+interface DiscountInfo {
+  discount_percent?: number;
+  discount_amount?: number;
+  max_uses?: number;
+  used_count?: number;
+  expires_at?: string;
+}
+
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 const PurchaseConfirmDialog = ({ open, onOpenChange, productName, price, numericPrice, stock, onConfirm, buying }: PurchaseConfirmDialogProps) => {
   const [quantity, setQuantity] = useState(1);
   const [discountCode, setDiscountCode] = useState("");
-  const [discountInfo, setDiscountInfo] = useState<any>(null);
+  const [discountInfo, setDiscountInfo] = useState<DiscountInfo | null>(null);
   const [checkingCode, setCheckingCode] = useState(false);
   const [codeError, setCodeError] = useState("");
 

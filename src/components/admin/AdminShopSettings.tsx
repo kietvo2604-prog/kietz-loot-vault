@@ -4,6 +4,11 @@ import { Save, Loader2, FileText, Image as ImageIcon, Bold, Italic, Type, Palett
 import { useToast } from "@/hooks/use-toast";
 import ImagePasteUpload from "@/components/ImagePasteUpload";
 
+type ShopSetting = {
+  key: string;
+  value: string;
+};
+
 const AdminShopSettings = () => {
   const { toast } = useToast();
   const [title, setTitle] = useState("");
@@ -15,7 +20,7 @@ const AdminShopSettings = () => {
   useEffect(() => {
     supabase.from("shop_settings").select("*").then(({ data }) => {
       const map: Record<string, string> = {};
-      (data || []).forEach((s: any) => { map[s.key] = s.value; });
+      (data || []).forEach((s: ShopSetting) => { map[s.key] = s.value; });
       setTitle(map["shop_title"] || "");
       setLogoUrl(map["shop_logo_url"] || "");
       if (map["shop_description"]) {

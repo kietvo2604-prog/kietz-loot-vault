@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import zalopayQR from "@/assets/zalopay-qr.png";
-import mbbankQR from "@/assets/mbbank-qr.png";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -13,13 +11,9 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const banks: { name: string; number: string; holder: string; qr?: string }[] = [
-  { name: "MB Bank", number: "0987672604", holder: "VO ANH KIET", qr: mbbankQR },
+const banks: { name: string; number: string; holder: string }[] = [
+  { name: "MB Bank", number: "0987672604", holder: "VO ANH KIET" },
   { name: "BV Bank", number: "99ZP25275M36980652", holder: "ZALOPAY_VO ANH KIET" },
-];
-
-const eWallets = [
-  { name: "ZaloPay", number: "0987672604", holder: "VO ANH KIET", hasQR: true },
 ];
 
 const cardTypes = [
@@ -57,24 +51,112 @@ const TopUp = () => {
   const [transferCode, setTransferCode] = useState<string | null>(null);
   const [recentTopups, setRecentTopups] = useState<TopupRequest[]>([]);
   const [loadingTopups, setLoadingTopups] = useState(false);
+  const [atmAmount, setAtmAmount] = useState("");
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [pendingAtmRequest, setPendingAtmRequest] = useState<TopupRequest | null>(null);
+  const [sepayQrUrl, setSepayQrUrl] = useState<string | null>(null);
+  const [loadingQr, setLoadingQr] = useState(false);
 
   const currentCard = cardTypes.find((c) => c.id === selectedCard)!;
 
-  // Fetch transfer code and recent topups
+  // Fetch transfer code, QR code, and recent topups
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       setLoadingTopups(true);
+      setLoadingQr(true);
       const [profileRes, topupRes] = await Promise.all([
-        supabase.from("profiles").select("transfer_code").eq("user_id", user.id).single(),
+        supabase.from("profiles").select("transfer_code, bank_qr_code").eq("user_id", user.id).single(),
         supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
       ]);
+      
       setTransferCode(profileRes.data?.transfer_code || null);
+      setSepayQrUrl(profileRes.data?.bank_qr_code || null);
       setRecentTopups(topupRes.data || []);
+      
+      // Find pending ATM transfer
+      const pendingAtm = (topupRes.data || []).find(
+        (t) => t.status === "pending" && t.method.toLowerCase().includes("chuyển khoản")
+      );
+      setPendingAtmRequest(pendingAtm || null);
+      
+      // If no QR code yet, trigger generation
+      if (!profileRes.data?.bank_qr_code && profileRes.data?.transfer_code) {
+        try {
+          const { data: qrData } = await supabase.functions.invoke("generate-sepay-qr", {
+            body: {
+              user_id: user.id,
+              transfer_code: profileRes.data.transfer_code,
+            },
+          });
+          if (qrData?.qr_url) {
+            setSepayQrUrl(qrData.qr_url);
+          }
+        } catch (err) {
+          console.warn("QR generation failed:", err);
+        }
+      }
+      
       setLoadingTopups(false);
+      setLoadingQr(false);
     };
     fetchData();
   }, [user]);
+
+  const handleAutoApproveAtm = async () => {
+    if (!user || !pendingAtmRequest) {
+      toast({ title: "Lỗi", description: "Không có yêu cầu chuyển khoản chờ xử lý.", variant: "destructive" });
+      return;
+    }
+    
+    if (!atmAmount.trim()) {
+      toast({ title: "Lỗi", description: "Vui lòng nhập số tiền đã chuyển.", variant: "destructive" });
+      return;
+    }
+
+    const amount = parseInt(atmAmount.replace(/\D/g, ""), 10);
+    if (isNaN(amount) || amount <= 0) {
+      toast({ title: "Lỗi", description: "Vui lòng nhập số tiền hợp lệ.", variant: "destructive" });
+      return;
+    }
+
+    setApproveLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-approve-atm", {
+        body: { topup_request_id: pendingAtmRequest.id, transfer_amount: amount },
+      });
+
+      if (error || !data?.success) {
+        toast({
+          title: "❌ Lỗi",
+          description: data?.error || "Không thể phê duyệt. Vui lòng thử lại.",
+          variant: "destructive",
+        });
+        setApproveLoading(false);
+        return;
+      }
+
+      toast({
+        title: "✅ Đã phê duyệt tự động",
+        description: `Nạp ${formatVND(amount)} → Thực cộng ${formatVND(data.credit_amount)} (bonus ${data.bonus_rate})`,
+      });
+
+      setAtmAmount("");
+      setPendingAtmRequest(null);
+
+      // Refresh topups list
+      const { data: newTopups } = await supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5);
+      setRecentTopups(newTopups || []);
+    } catch (err) {
+      toast({
+        title: "❌ Lỗi",
+        description: err instanceof Error ? err.message : "Lỗi không xác định",
+        variant: "destructive",
+      });
+    } finally {
+      setApproveLoading(false);
+    }
+  };
 
   const handleCopy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -306,35 +388,6 @@ const TopUp = () => {
               <span className="font-display text-2xl font-bold text-accent-foreground">+10%</span>
             </div>
 
-            {/* E-wallets */}
-            <div className="bg-card border border-border rounded-xl p-6 neon-card space-y-4">
-              <div className="flex items-center gap-2 justify-center">
-                <Smartphone className="w-6 h-6 text-neon-cyan" />
-                <h2 className="font-display text-lg font-bold text-secondary neon-cyan-text">VÍ ĐIỆN TỬ</h2>
-              </div>
-              <div className="flex flex-col items-center gap-3">
-                {eWallets.map((w: any) => (
-                  <div key={w.name} className="bg-muted border border-border rounded-lg p-4 text-center">
-                    <p className="font-bold text-foreground mb-1">{w.name}</p>
-                    {w.hasQR && (
-                      <div className="my-3 flex justify-center">
-                        <img src={zalopayQR} alt="ZaloPay QR" className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-foreground font-mono">{w.number || "Chưa cập nhật"}</span>
-                      {w.number && (
-                        <button onClick={() => handleCopy(w.number, w.name)} className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs">
-                          {copiedField === w.name ? <><CheckCircle className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy</>}
-                        </button>
-                      )}
-                    </div>
-                    {w.holder && <p className="text-xs text-muted-foreground mt-1">Chủ TK: {w.holder}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Bank accounts */}
             <div className="bg-card border border-border rounded-xl p-6 neon-card space-y-4">
               <div className="flex items-center gap-2">
@@ -342,16 +395,44 @@ const TopUp = () => {
                 <h2 className="font-display text-lg font-bold text-secondary neon-cyan-text">CHUYỂN KHOẢN NGÂN HÀNG</h2>
               </div>
               <div className="space-y-3">
-                {banks.map((bank) => (
+                {/* MB Bank with Sepay QR */}
+                <div className="bg-muted border border-border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-foreground">MB Bank</span>
+                    <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">Sepay QR</span>
+                  </div>
+                  {loadingQr ? (
+                    <div className="my-3 flex justify-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : sepayQrUrl ? (
+                    <div className="my-3 flex justify-center">
+                      <img src={sepayQrUrl} alt="MB Bank Sepay QR" className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
+                    </div>
+                  ) : (
+                    <div className="my-3 flex justify-center text-center">
+                      <p className="text-xs text-muted-foreground">QR code đang được tạo...</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">STK: </span>
+                      <span className="text-foreground font-mono">0987672604</span>
+                    </div>
+                    <button onClick={() => handleCopy("0987672604", "MB Bank")} className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs justify-end">
+                      {copiedField === "MB Bank" ? <><CheckCircle className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy STK</>}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Chủ TK: VO ANH KIET</p>
+                  <p className="text-xs text-muted-foreground mt-1">Nội dung chuyển: <code className="text-primary font-mono">{transferCode || "Chưa tạo"}</code></p>
+                </div>
+
+                {/* Other banks */}
+                {banks.slice(1).map((bank) => (
                   <div key={bank.name} className="bg-muted border border-border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-bold text-foreground">{bank.name}</span>
                     </div>
-                    {bank.qr && (
-                      <div className="my-3 flex justify-center">
-                        <img src={bank.qr} alt={`${bank.name} QR`} className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
-                      </div>
-                    )}
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-muted-foreground">STK: </span>
@@ -386,6 +467,51 @@ const TopUp = () => {
                 ⚠️ Mỗi tài khoản có một mã riêng. Vui lòng ghi đúng nội dung chuyển khoản để hệ thống tự động cộng tiền.
               </p>
             </div>
+
+            {/* Auto-Approve ATM Transfer */}
+            {pendingAtmRequest && (
+              <div className="bg-card border border-accent/30 rounded-xl p-6 neon-card">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle className="w-6 h-6 text-accent" />
+                  <h3 className="font-bold text-foreground">⚡ Đã chuyển khoản?</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Bạn có yêu cầu chuyển khoản ATM đang chờ xử lý. Hãy nhập số tiền bạn đã chuyển để hệ thống tự động phê duyệt và cộng tiền ngay lập tức.
+                </p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Số tiền đã chuyển (VNĐ)</label>
+                    <input
+                      type="text"
+                      value={atmAmount}
+                      onChange={(e) => setAtmAmount(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Ví dụ: 50000"
+                      className="w-full bg-muted border border-border rounded-lg py-3 px-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all"
+                    />
+                    {atmAmount && (
+                      <p className="text-xs text-accent mt-2">
+                        💰 Bạn sẽ nhận: <span className="font-bold">{formatVND(
+                          parseInt(atmAmount, 10) < 50000 
+                            ? Math.floor(parseInt(atmAmount, 10) * 1.10)
+                            : Math.floor(parseInt(atmAmount, 10) * 1.05)
+                        )}</span>
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={handleAutoApproveAtm}
+                    disabled={approveLoading || !atmAmount}
+                    className="w-full py-3 gradient-accent text-accent-foreground font-bold rounded-lg text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60"
+                  >
+                    {approveLoading ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</>
+                    ) : (
+                      <><CheckCircle className="w-4 h-4" /> Phê duyệt tự động → Cộng tiền ngay</>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

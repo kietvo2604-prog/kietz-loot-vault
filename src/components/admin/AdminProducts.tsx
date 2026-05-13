@@ -11,6 +11,7 @@ type Product = {
   stock: number;
   category: string;
   status: string;
+  image_url?: string | null;
 };
 
 type ProductAccount = {
@@ -106,7 +107,7 @@ const AdminProducts = () => {
         const lines = accountLines.split("\n").filter(l => l.trim());
         if (lines.length > 0) {
           await supabase.from("product_accounts").insert(
-            lines.map(line => ({ product_id: editing.id, account_info: line.trim() })) as any
+            lines.map(line => ({ product_id: editing.id, account_info: line.trim() }))
           );
           const { count } = await supabase.from("product_accounts")
             .select("*", { count: "exact", head: true })
@@ -124,7 +125,7 @@ const AdminProducts = () => {
         const lines = accountLines.split("\n").filter(l => l.trim());
         if (lines.length > 0) {
           await supabase.from("product_accounts").insert(
-            lines.map(line => ({ product_id: newProduct.id, account_info: line.trim() })) as any
+            lines.map(line => ({ product_id: newProduct.id, account_info: line.trim() }))
           );
           await supabase.from("products").update({ stock: lines.length }).eq("id", newProduct.id);
         }
@@ -135,7 +136,7 @@ const AdminProducts = () => {
   };
 
   const handleEdit = (p: Product) => {
-    setForm({ name: p.name, description: p.description || "", price: p.price, category: p.category, status: p.status, image_url: (p as any).image_url || "" });
+    setForm({ name: p.name, description: p.description || "", price: p.price, category: p.category, status: p.status, image_url: p.image_url || "" });
     setAccountLines("");
     setEditing(p);
     setShowForm(true);

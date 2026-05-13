@@ -31,7 +31,7 @@ const AdminOrders = () => {
   const fetchOrders = async () => {
     setLoading(true);
     const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
-    setOrders((data as any[]) || []);
+    setOrders((data as Order[]) || []);
     setLoading(false);
   };
 
@@ -50,7 +50,7 @@ const AdminOrders = () => {
   const handleSaveAccInfo = async () => {
     if (!selectedOrder) return;
     setSaving(true);
-    const { error } = await supabase.from("orders").update({ account_info: accInfoDraft } as any).eq("id", selectedOrder.id);
+    const { error } = await supabase.from("orders").update({ account_info: accInfoDraft } as Partial<Order>).eq("id", selectedOrder.id);
     setSaving(false);
     if (error) {
       toast({ title: "Lỗi", description: "Không thể cập nhật.", variant: "destructive" });

@@ -49,7 +49,7 @@ const AdminDiscountCodes = () => {
 
   const handleSave = async () => {
     if (!form.code.trim()) return;
-    const payload: any = {
+    const payload: Partial<DiscountCode> = {
       code: form.code.trim().toUpperCase(),
       discount_percent: form.discount_percent,
       discount_amount: form.discount_amount,
