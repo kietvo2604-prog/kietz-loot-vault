@@ -4,65 +4,86 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req) => {
+
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+
+    // Nhận dữ liệu từ SePay
     const body = await req.json();
 
-const transfer_content = body.content;
-const amount = Number(body.transferAmount || 0);
-const transfer_type = body.transferType;
+    const transfer_content = body.content?.trim();
+    const amount = Number(body.transferAmount || 0);
+    const transfer_type = body.transferType;
+
+    // Chỉ nhận tiền vào
     if (transfer_type !== "in") {
-  return new Response(
-    JSON.stringify({ error: "Not incoming transfer" }),
-    {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-}
-
-    // Validate secret key to prevent unauthorized calls
-    // Validate secret key... {
       return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Not incoming transfer"
+        }),
+        {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 
-    // Validate inputs
-    if (!transfer_content || !amount || typeof amount !== "number" || amount <= 0) {
+    // Kiểm tra dữ liệu
+    if (!transfer_content || amount <= 0) {
       return new Response(
-        JSON.stringify({ error: "Missing or invalid fields. Required: transfer_content (string), amount (number > 0)" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Invalid transfer data"
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 
-    // Extract VAKxxx code from transfer content
-    const match = transfer_content.toUpperCase().match(/VAK\d{3}/);
+    // Tìm mã VAK
+    const match = transfer_content
+      .toUpperCase()
+      .match(/VAK\d{3}/);
+
     if (!match) {
       return new Response(
-        JSON.stringify({ error: "No valid VAK code found in transfer content", transfer_content }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "No valid VAK code found",
+          transfer_content
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 
     const vakCode = match[0];
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Kết nối Supabase
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
 
-    // Find user by transfer_code
+    // Tìm user bằng transfer_code
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("user_id, balance, display_name, transfer_code")
@@ -71,67 +92,118 @@ const transfer_type = body.transferType;
 
     if (profileError || !profile) {
       return new Response(
-        JSON.stringify({ error: "No user found with transfer code: " + vakCode }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "No user found with transfer code: " + vakCode
+        }),
+        {
+          status: 404,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 
-    // Calculate bonus: under 50k → +10%, 50k+ → +5%
+    // Bonus nạp
     const bonusRate = amount < 50000 ? 0.10 : 0.05;
     const bonusAmount = Math.floor(amount * bonusRate);
+
     const creditAmount = amount + bonusAmount;
 
-    // Create approved topup_request
-    const { error: insertError } = await supabase.from("topup_requests").insert({
-      user_id: profile.user_id,
-      amount: creditAmount,
-      method: "Chuyển khoản ATM/ZaloPay",
-      status: "approved",
-      note: `Nội dung: ${transfer_content} | Gốc: ${amount}đ + Bonus ${bonusRate * 100}%: ${bonusAmount}đ`,
-    });
+    // Lưu lịch sử nạp
+    const { error: insertError } = await supabase
+      .from("topup_requests")
+      .insert({
+        user_id: profile.user_id,
+        amount: creditAmount,
+        method: "SePay",
+        status: "approved",
+        note: `Nội dung: ${transfer_content}`
+      });
 
     if (insertError) {
-      console.error("Insert topup error:", insertError);
+
+      console.error(insertError);
+
       return new Response(
-        JSON.stringify({ error: "Failed to create topup record" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Failed to create topup record"
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 
-    // Credit balance
+    // Cộng balance
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ balance: profile.balance + creditAmount })
+      .update({
+        balance: Number(profile.balance) + creditAmount
+      })
       .eq("user_id", profile.user_id);
 
     if (updateError) {
-      console.error("Update balance error:", updateError);
+
+      console.error(updateError);
+
       return new Response(
-        JSON.stringify({ error: "Failed to update balance" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Failed to update balance"
+        }),
+        {
+          status: 500,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 
-    console.log(`Topup success: ${vakCode} → ${profile.display_name} → +${creditAmount}đ (${amount} + ${bonusAmount} bonus)`);
+    console.log(
+      `Topup success: ${vakCode} → +${creditAmount}`
+    );
 
     return new Response(
       JSON.stringify({
         success: true,
         transfer_code: vakCode,
-        user: profile.display_name,
-        original_amount: amount,
-        bonus_rate: `${bonusRate * 100}%`,
-        bonus_amount: bonusAmount,
-        credit_amount: creditAmount,
-        new_balance: profile.balance + creditAmount,
+        amount,
+        bonusAmount,
+        creditAmount
       }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      }
     );
+
   } catch (error) {
+
     console.error("bank-callback error:", error);
+
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: error instanceof Error
+          ? error.message
+          : "Unknown error"
+      }),
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+      }
     );
   }
 });
