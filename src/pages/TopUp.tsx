@@ -153,7 +153,7 @@ const TopUp = () => {
       }
 
       toast({
-        title: "✅ Đã phê duyệt tự động",
+        title: "✅ Đã phê duyệt tự đ���ng",
         description: `Nạp ${formatVND(amount)} → Thực cộng ${formatVND(data.credit_amount)} (bonus ${data.bonus_rate})`,
       });
 
@@ -402,6 +402,22 @@ const TopUp = () => {
                 </div>
               </div>
               <span className="font-display text-2xl font-bold text-accent-foreground">+10%</span>
+            </div>
+
+            {/* Important Notice */}
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl overflow-hidden shadow-lg">
+              <div className="px-4 py-3 flex items-center gap-2 border-b border-amber-600/30">
+                <AlertTriangle className="w-5 h-5 text-white" />
+                <span className="font-bold text-white">Lưu ý quan trọng</span>
+              </div>
+              <div className="bg-amber-50 px-4 py-3">
+                <p className="text-xs text-amber-800 mb-1">Vui lòng đọc kỹ trước khi nạp</p>
+                <ul className="space-y-1 text-sm text-amber-900">
+                  <li>Nhập đúng nội dung chuyển tiền.</li>
+                  <li>Cộng tiền trong vài giây. <span className="font-bold">Min 10k</span></li>
+                  <li>Liên hệ ZALO <span className="font-bold">0987672604</span> nếu nhập sai nội dung chuyển hoặc tiền không tự cộng sau 1 phút.</li>
+                </ul>
+              </div>
             </div>
 
             {/* Bank accounts */}

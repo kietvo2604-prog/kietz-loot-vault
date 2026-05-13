@@ -54,6 +54,23 @@ serve(async (req) => {
       );
     }
 
+    // Kiểm tra số tiền tối thiểu 10k
+    if (amount < 10000) {
+      return new Response(
+        JSON.stringify({
+          error: "Minimum transfer amount is 10,000 VND",
+          received: amount
+        }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
     // Tìm mã VAK
     const match = transfer_content
       .toUpperCase()

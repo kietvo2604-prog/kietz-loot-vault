@@ -23,6 +23,14 @@ serve(async (req) => {
       );
     }
 
+    // Kiểm tra số tiền tối thiểu 10k
+    if (transfer_amount < 10000) {
+      return new Response(
+        JSON.stringify({ error: "Số tiền tối thiểu là 10,000 VND. Giao dịch dưới 10k sẽ không được cộng tiền." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
