@@ -59,62 +59,90 @@ const TopUp = () => {
 
   const currentCard = cardTypes.find((c) => c.id === selectedCard)!;
 
-  // Fetch transfer code, QR code, and recent topups
+  // Generate VietQR URL directly using transfer_code
+  const generateVietQrUrl = (transferCode: string) => {
+    // MB Bank: bank ID = 970422, account = 0987672604
+    const bankId = "970422"; // MB Bank
+    const accountNo = "0987672604";
+    const accountName = "VO ANH KIET";
+    const template = "compact2";
+    
+    // VietQR API format
+    return `https://img.vietqr.io/image/${bankId}-${accountNo}-${template}.png?addInfo=${encodeURIComponent(transferCode)}&accountName=${encodeURIComponent(accountName)}`;
+  };
+
+  // Fetch transfer code and recent topups
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       setLoadingTopups(true);
       setLoadingQr(true);
-      const [profileRes, topupRes] = await Promise.all([
-        supabase.from("profiles").select("transfer_code, bank_qr_code").eq("user_id", user.id).single(),
-        supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
-      ]);
       
-      setTransferCode(profileRes.data?.transfer_code || null);
-      setSepayQrUrl(profileRes.data?.bank_qr_code || null);
-      setRecentTopups(topupRes.data || []);
-      
-      // Find pending ATM transfer
-      const pendingAtm = (topupRes.data || []).find(
-        (t) => t.status === "pending" && t.method.toLowerCase().includes("chuyển khoản")
-      );
-      setPendingAtmRequest(pendingAtm || null);
-      
-      // If no QR code yet, trigger generation
-      if (!profileRes.data?.bank_qr_code && profileRes.data?.transfer_code) {
-        try {
-          console.log("[v0] Triggering QR generation for user:", user.id);
-          const { data: qrData, error: qrError } = await supabase.functions.invoke("generate-sepay-qr", {
-            body: {
-              user_id: user.id,
-              transfer_code: profileRes.data.transfer_code,
-            },
-          });
-          console.log("[v0] QR generation response:", qrData, "Error:", qrError);
-          
-          if (qrError) {
-            console.error("[v0] QR generation error:", qrError);
-          } else if (qrData?.qr_url) {
-            console.log("[v0] Setting QR URL:", qrData.qr_url);
-            setSepayQrUrl(qrData.qr_url);
-          } else if (qrData?.success) {
-            console.log("[v0] QR generated successfully, reloading profile...");
-            // Reload profile to get updated QR code
-            const { data: updatedProfile } = await supabase
-              .from("profiles")
-              .select("bank_qr_code")
-              .eq("user_id", user.id)
-              .single();
-            if (updatedProfile?.bank_qr_code) {
-              setSepayQrUrl(updatedProfile.bank_qr_code);
+      try {
+        const [profileRes, topupRes] = await Promise.all([
+          supabase.from("profiles").select("transfer_code").eq("user_id", user.id).single(),
+          supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
+        ]);
+        
+        console.log("[v0] Profile data:", profileRes.data, "Error:", profileRes.error);
+        
+        let userTransferCode = profileRes.data?.transfer_code || null;
+        
+        // If no transfer_code exists, generate one using RPC function
+        if (!userTransferCode && !profileRes.error) {
+          console.log("[v0] No transfer_code, generating new one...");
+          try {
+            // Call RPC to generate unique transfer code
+            const { data: newCode, error: rpcError } = await supabase.rpc("generate_transfer_code");
+            
+            if (!rpcError && newCode) {
+              console.log("[v0] Generated new transfer_code:", newCode);
+              
+              // Update profile with new transfer_code
+              const { error: updateError } = await supabase
+                .from("profiles")
+                .update({ transfer_code: newCode })
+                .eq("user_id", user.id);
+              
+              if (!updateError) {
+                userTransferCode = newCode;
+                console.log("[v0] Successfully updated profile with transfer_code");
+              } else {
+                console.error("[v0] Failed to update profile:", updateError);
+              }
+            } else {
+              console.error("[v0] RPC generate_transfer_code error:", rpcError);
             }
+          } catch (genErr) {
+            console.error("[v0] Error generating transfer_code:", genErr);
           }
-        } catch (err) {
-          console.error("[v0] QR generation exception:", err);
         }
+        
+        setTransferCode(userTransferCode);
+        
+        // Generate QR URL directly if we have transfer_code
+        if (userTransferCode) {
+          const qrUrl = generateVietQrUrl(userTransferCode);
+          console.log("[v0] Generated VietQR URL:", qrUrl);
+          setSepayQrUrl(qrUrl);
+        } else {
+          console.log("[v0] No transfer_code available");
+          setSepayQrUrl(null);
+        }
+        
+        setRecentTopups(topupRes.data || []);
+        
+        // Find pending ATM transfer
+        const pendingAtm = (topupRes.data || []).find(
+          (t) => t.status === "pending" && t.method.toLowerCase().includes("chuyển khoản")
+        );
+        setPendingAtmRequest(pendingAtm || null);
+      } catch (err) {
+        console.error("[v0] Error fetching data:", err);
       }
       
       setLoadingTopups(false);
+      setLoadingQr(false);
     };
     fetchData();
   }, [user]);
