@@ -70,14 +70,7 @@ const TopUp = () => {
         supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
       ]);
       
-      let userTransferCode = profileRes.data?.transfer_code || null;
-      
-      // If no transfer_code exists, generate one and save to profile
-      if (!userTransferCode) {
-        userTransferCode = `KIETLOOT${user.id.slice(0, 8).toUpperCase()}`;
-        await supabase.from("profiles").update({ transfer_code: userTransferCode }).eq("user_id", user.id);
-      }
-      
+      const userTransferCode = profileRes.data?.transfer_code || null;
       setTransferCode(userTransferCode);
       setRecentTopups(topupRes.data || []);
       
@@ -89,8 +82,10 @@ const TopUp = () => {
       
       // Generate QR URL directly using VietQR (free public API)
       // MB Bank ID: 970422, Account: 0987672604
-      const qrUrl = `https://img.vietqr.io/image/970422-0987672604-compact2.png?addInfo=${encodeURIComponent(userTransferCode)}&accountName=${encodeURIComponent("VO ANH KIET")}`;
-      setSepayQrUrl(qrUrl);
+      if (userTransferCode) {
+        const qrUrl = `https://img.vietqr.io/image/970422-0987672604-compact2.png?addInfo=${encodeURIComponent(userTransferCode)}&accountName=${encodeURIComponent("VO ANH KIET")}`;
+        setSepayQrUrl(qrUrl);
+      }
       
       setLoadingTopups(false);
       setLoadingQr(false);
