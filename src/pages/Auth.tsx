@@ -77,7 +77,7 @@ const Auth = () => {
       const { data: avail } = await supabase.rpc("username_available", { p_username: uname });
       if (avail === false) { setError("Tài khoản đã tồn tại"); setSubmitting(false); return; }
 
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -87,7 +87,35 @@ const Auth = () => {
       });
       if (error) {
         setError(error.message);
-      } else {
+      } else if (signUpData?.user?.id) {
+        // Auto-generate Sepay QR code for new user
+        try {
+          // Get transfer code from profiles
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("transfer_code")
+            .eq("user_id", signUpData.user.id)
+            .single();
+
+          if (profileData?.transfer_code) {
+            // Call Sepay QR generation function
+            const { error: qrError } = await supabase.functions.invoke("generate-sepay-qr", {
+              body: {
+                user_id: signUpData.user.id,
+                transfer_code: profileData.transfer_code,
+              },
+            });
+            
+            if (qrError) {
+              console.warn("QR code generation failed:", qrError);
+              // Don't fail signup if QR generation fails
+            }
+          }
+        } catch (qrErr) {
+          console.warn("QR generation error:", qrErr);
+          // Silently continue - user can still use the app
+        }
+
         setMessage("Đăng ký thành công! Bạn có thể đăng nhập ngay.");
         setIsLogin(true);
         setPassword("");

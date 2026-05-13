@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import zalopayQR from "@/assets/zalopay-qr.png";
-import mbbankQR from "@/assets/mbbank-qr.png";
 import TopBar from "@/components/TopBar";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -13,13 +11,9 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const banks: { name: string; number: string; holder: string; qr?: string }[] = [
-  { name: "MB Bank", number: "0987672604", holder: "VO ANH KIET", qr: mbbankQR },
+const banks: { name: string; number: string; holder: string }[] = [
+  { name: "MB Bank", number: "0987672604", holder: "VO ANH KIET" },
   { name: "BV Bank", number: "99ZP25275M36980652", holder: "ZALOPAY_VO ANH KIET" },
-];
-
-const eWallets = [
-  { name: "ZaloPay", number: "0987672604", holder: "VO ANH KIET", hasQR: true },
 ];
 
 const cardTypes = [
@@ -60,19 +54,24 @@ const TopUp = () => {
   const [atmAmount, setAtmAmount] = useState("");
   const [approveLoading, setApproveLoading] = useState(false);
   const [pendingAtmRequest, setPendingAtmRequest] = useState<TopupRequest | null>(null);
+  const [sepayQrUrl, setSepayQrUrl] = useState<string | null>(null);
+  const [loadingQr, setLoadingQr] = useState(false);
 
   const currentCard = cardTypes.find((c) => c.id === selectedCard)!;
 
-  // Fetch transfer code and recent topups
+  // Fetch transfer code, QR code, and recent topups
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
       setLoadingTopups(true);
+      setLoadingQr(true);
       const [profileRes, topupRes] = await Promise.all([
-        supabase.from("profiles").select("transfer_code").eq("user_id", user.id).single(),
+        supabase.from("profiles").select("transfer_code, bank_qr_code").eq("user_id", user.id).single(),
         supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
       ]);
+      
       setTransferCode(profileRes.data?.transfer_code || null);
+      setSepayQrUrl(profileRes.data?.bank_qr_code || null);
       setRecentTopups(topupRes.data || []);
       
       // Find pending ATM transfer
@@ -81,7 +80,25 @@ const TopUp = () => {
       );
       setPendingAtmRequest(pendingAtm || null);
       
+      // If no QR code yet, trigger generation
+      if (!profileRes.data?.bank_qr_code && profileRes.data?.transfer_code) {
+        try {
+          const { data: qrData } = await supabase.functions.invoke("generate-sepay-qr", {
+            body: {
+              user_id: user.id,
+              transfer_code: profileRes.data.transfer_code,
+            },
+          });
+          if (qrData?.qr_url) {
+            setSepayQrUrl(qrData.qr_url);
+          }
+        } catch (err) {
+          console.warn("QR generation failed:", err);
+        }
+      }
+      
       setLoadingTopups(false);
+      setLoadingQr(false);
     };
     fetchData();
   }, [user]);
@@ -371,35 +388,6 @@ const TopUp = () => {
               <span className="font-display text-2xl font-bold text-accent-foreground">+10%</span>
             </div>
 
-            {/* E-wallets */}
-            <div className="bg-card border border-border rounded-xl p-6 neon-card space-y-4">
-              <div className="flex items-center gap-2 justify-center">
-                <Smartphone className="w-6 h-6 text-neon-cyan" />
-                <h2 className="font-display text-lg font-bold text-secondary neon-cyan-text">VÍ ĐIỆN TỬ</h2>
-              </div>
-              <div className="flex flex-col items-center gap-3">
-                {eWallets.map((w: any) => (
-                  <div key={w.name} className="bg-muted border border-border rounded-lg p-4 text-center">
-                    <p className="font-bold text-foreground mb-1">{w.name}</p>
-                    {w.hasQR && (
-                      <div className="my-3 flex justify-center">
-                        <img src={zalopayQR} alt="ZaloPay QR" className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-foreground font-mono">{w.number || "Chưa cập nhật"}</span>
-                      {w.number && (
-                        <button onClick={() => handleCopy(w.number, w.name)} className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs">
-                          {copiedField === w.name ? <><CheckCircle className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy</>}
-                        </button>
-                      )}
-                    </div>
-                    {w.holder && <p className="text-xs text-muted-foreground mt-1">Chủ TK: {w.holder}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
             {/* Bank accounts */}
             <div className="bg-card border border-border rounded-xl p-6 neon-card space-y-4">
               <div className="flex items-center gap-2">
@@ -407,16 +395,44 @@ const TopUp = () => {
                 <h2 className="font-display text-lg font-bold text-secondary neon-cyan-text">CHUYỂN KHOẢN NGÂN HÀNG</h2>
               </div>
               <div className="space-y-3">
-                {banks.map((bank) => (
+                {/* MB Bank with Sepay QR */}
+                <div className="bg-muted border border-border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-foreground">MB Bank</span>
+                    <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">Sepay QR</span>
+                  </div>
+                  {loadingQr ? (
+                    <div className="my-3 flex justify-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : sepayQrUrl ? (
+                    <div className="my-3 flex justify-center">
+                      <img src={sepayQrUrl} alt="MB Bank Sepay QR" className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
+                    </div>
+                  ) : (
+                    <div className="my-3 flex justify-center text-center">
+                      <p className="text-xs text-muted-foreground">QR code đang được tạo...</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">STK: </span>
+                      <span className="text-foreground font-mono">0987672604</span>
+                    </div>
+                    <button onClick={() => handleCopy("0987672604", "MB Bank")} className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs justify-end">
+                      {copiedField === "MB Bank" ? <><CheckCircle className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy STK</>}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">Chủ TK: VO ANH KIET</p>
+                  <p className="text-xs text-muted-foreground mt-1">Nội dung chuyển: <code className="text-primary font-mono">{transferCode || "Chưa tạo"}</code></p>
+                </div>
+
+                {/* Other banks */}
+                {banks.slice(1).map((bank) => (
                   <div key={bank.name} className="bg-muted border border-border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-bold text-foreground">{bank.name}</span>
                     </div>
-                    {bank.qr && (
-                      <div className="my-3 flex justify-center">
-                        <img src={bank.qr} alt={`${bank.name} QR`} className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
-                      </div>
-                    )}
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-muted-foreground">STK: </span>
