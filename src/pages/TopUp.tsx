@@ -71,9 +71,6 @@ const TopUp = () => {
           supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
         ]);
         
-        console.log("[v0] Profile response:", profileRes);
-        console.log("[v0] User transfer_code:", profileRes.data?.transfer_code);
-        
         const userTransferCode = profileRes.data?.transfer_code || null;
         setTransferCode(userTransferCode);
         setRecentTopups(topupRes.data || []);
@@ -88,13 +85,10 @@ const TopUp = () => {
         // MB Bank ID: 970422, Account: 0987672604
         if (userTransferCode) {
           const qrUrl = `https://img.vietqr.io/image/970422-0987672604-compact2.png?addInfo=${encodeURIComponent(userTransferCode)}&accountName=${encodeURIComponent("VO ANH KIET")}`;
-          console.log("[v0] Generated QR URL:", qrUrl);
           setSepayQrUrl(qrUrl);
-        } else {
-          console.log("[v0] No transfer_code found for user");
         }
       } catch (error) {
-        console.error("[v0] Error fetching data:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoadingTopups(false);
         setLoadingQr(false);
@@ -439,8 +433,8 @@ const TopUp = () => {
                           className="w-56 h-56 rounded-lg border-2 border-gray-200 object-contain" 
                         />
                       ) : (
-                        <div className="w-56 h-56 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <p className="text-center text-sm text-gray-500">QR code đang được tạo...</p>
+                        <div className="w-56 h-56 bg-gray-100 rounded-lg flex items-center justify-center p-4">
+                          <p className="text-center text-sm text-gray-500">Vui lòng đăng nhập để xem mã QR</p>
                         </div>
                       )}
                     </div>
