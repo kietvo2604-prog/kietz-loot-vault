@@ -63,15 +63,25 @@ serve(async (req) => {
     }
 
     const qrData = await qrResponse.json();
-    const qrCodeUrl = qrData.data?.qrUrl || qrData.qrUrl;
+    console.log("[v0] Sepay API Response:", JSON.stringify(qrData, null, 2));
+    
+    // Sepay API returns: { code: 00, message: "...", data: { qrUrl: "..." } }
+    const qrCodeUrl = qrData?.data?.qrUrl || qrData?.qrUrl;
 
     if (!qrCodeUrl) {
       console.error("No QR URL in response:", qrData);
       return new Response(
-        JSON.stringify({ error: "Invalid response from Sepay" }),
+        JSON.stringify({ 
+          error: "Invalid response from Sepay",
+          details: qrData,
+          code: qrData?.code,
+          message: qrData?.message
+        }),
         { status: 500, headers: corsHeaders }
       );
     }
+    
+    console.log("[v0] Generated QR URL:", qrCodeUrl);
 
     // Save QR code URL to user profile
     const { error: updateError } = await supabase

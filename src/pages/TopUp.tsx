@@ -83,22 +83,38 @@ const TopUp = () => {
       // If no QR code yet, trigger generation
       if (!profileRes.data?.bank_qr_code && profileRes.data?.transfer_code) {
         try {
-          const { data: qrData } = await supabase.functions.invoke("generate-sepay-qr", {
+          console.log("[v0] Triggering QR generation for user:", user.id);
+          const { data: qrData, error: qrError } = await supabase.functions.invoke("generate-sepay-qr", {
             body: {
               user_id: user.id,
               transfer_code: profileRes.data.transfer_code,
             },
           });
-          if (qrData?.qr_url) {
+          console.log("[v0] QR generation response:", qrData, "Error:", qrError);
+          
+          if (qrError) {
+            console.error("[v0] QR generation error:", qrError);
+          } else if (qrData?.qr_url) {
+            console.log("[v0] Setting QR URL:", qrData.qr_url);
             setSepayQrUrl(qrData.qr_url);
+          } else if (qrData?.success) {
+            console.log("[v0] QR generated successfully, reloading profile...");
+            // Reload profile to get updated QR code
+            const { data: updatedProfile } = await supabase
+              .from("profiles")
+              .select("bank_qr_code")
+              .eq("user_id", user.id)
+              .single();
+            if (updatedProfile?.bank_qr_code) {
+              setSepayQrUrl(updatedProfile.bank_qr_code);
+            }
           }
         } catch (err) {
-          console.warn("QR generation failed:", err);
+          console.error("[v0] QR generation exception:", err);
         }
       }
       
       setLoadingTopups(false);
-      setLoadingQr(false);
     };
     fetchData();
   }, [user]);
@@ -396,35 +412,84 @@ const TopUp = () => {
               </div>
               <div className="space-y-3">
                 {/* MB Bank with Sepay QR */}
-                <div className="bg-muted border border-border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-foreground">MB Bank</span>
-                    <span className="text-xs bg-accent/20 text-accent px-2 py-1 rounded">Sepay QR</span>
-                  </div>
-                  {loadingQr ? (
-                    <div className="my-3 flex justify-center">
-                      <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                <div className="bg-gradient-to-br from-blue-900 to-blue-800 border border-blue-700 rounded-xl overflow-hidden shadow-lg">
+                  {/* Bank Header */}
+                  <div className="bg-gradient-to-r from-blue-900 to-blue-800 px-6 py-4 flex items-center gap-3">
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <Wallet className="w-5 h-5 text-white" />
                     </div>
-                  ) : sepayQrUrl ? (
-                    <div className="my-3 flex justify-center">
-                      <img src={sepayQrUrl} alt="MB Bank Sepay QR" className="w-64 h-64 rounded-lg border border-border object-contain bg-white" />
-                    </div>
-                  ) : (
-                    <div className="my-3 flex justify-center text-center">
-                      <p className="text-xs text-muted-foreground">QR code đang được tạo...</p>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <span className="text-muted-foreground">STK: </span>
-                      <span className="text-foreground font-mono">0987672604</span>
+                      <h3 className="text-white font-bold">MB Bank</h3>
+                      <p className="text-blue-100 text-xs">VO ANH KIET</p>
                     </div>
-                    <button onClick={() => handleCopy("0987672604", "MB Bank")} className="flex items-center gap-1 text-primary hover:text-primary/80 text-xs justify-end">
-                      {copiedField === "MB Bank" ? <><CheckCircle className="w-3 h-3" /> Đã copy</> : <><Copy className="w-3 h-3" /> Copy STK</>}
-                    </button>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">Chủ TK: VO ANH KIET</p>
-                  <p className="text-xs text-muted-foreground mt-1">Nội dung chuyển: <code className="text-primary font-mono">{transferCode || "Chưa tạo"}</code></p>
+
+                  {/* Content */}
+                  <div className="bg-white p-6 space-y-4">
+                    {/* QR Code Section */}
+                    <div className="flex flex-col items-center justify-center">
+                      {loadingQr ? (
+                        <div className="w-56 h-56 flex items-center justify-center bg-gray-100 rounded-lg">
+                          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+                        </div>
+                      ) : sepayQrUrl ? (
+                        <img 
+                          src={sepayQrUrl} 
+                          alt="MB Bank Sepay QR" 
+                          className="w-56 h-56 rounded-lg border-2 border-gray-200 object-contain" 
+                        />
+                      ) : (
+                        <div className="w-56 h-56 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <p className="text-center text-sm text-gray-500">QR code đang được tạo...</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Account Info */}
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between pb-2 border-b border-gray-200">
+                        <span className="text-gray-600">Số tài khoản</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-gray-900">0987672604</span>
+                          <button 
+                            onClick={() => handleCopy("0987672604", "MB Bank")} 
+                            className="text-blue-600 hover:text-blue-700 text-xs flex items-center gap-1"
+                          >
+                            {copiedField === "MB Bank" ? (
+                              <><CheckCircle className="w-3 h-3" /> Đã copy</>
+                            ) : (
+                              <><Copy className="w-3 h-3" /> Copy</>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pb-2 border-b border-gray-200">
+                        <span className="text-gray-600">Chủ tài khoản</span>
+                        <span className="font-bold text-gray-900">VO ANH KIET</span>
+                      </div>
+
+                      {/* Transfer Code */}
+                      {transferCode && (
+                        <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 mt-3">
+                          <p className="text-xs text-gray-600 mb-1">NỘI DUNG CHUYỂN KHOẢN</p>
+                          <div className="flex items-center justify-between">
+                            <code className="font-bold text-red-600 text-sm">{transferCode}</code>
+                            <button 
+                              onClick={() => handleCopy(transferCode, "content")} 
+                              className="text-blue-600 hover:text-blue-700 text-xs flex items-center gap-1"
+                            >
+                              {copiedField === "content" ? (
+                                <><CheckCircle className="w-3 h-3" /> Đã copy</>
+                              ) : (
+                                <><Copy className="w-3 h-3" /> Copy</>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Other banks */}
