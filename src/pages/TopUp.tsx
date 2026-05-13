@@ -580,6 +580,51 @@ const TopUp = () => {
           </div>
         )}
 
+        {/* Successful ATM Transfers History */}
+        {user && (() => {
+          const successfulAtmTransfers = recentTopups.filter(
+            (t) => t.status === "approved" && t.method.toLowerCase().includes("chuyển khoản")
+          );
+          if (successfulAtmTransfers.length === 0) return null;
+          return (
+            <div className="bg-card border border-primary/30 rounded-xl p-6 neon-card space-y-4 animate-slide-up">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-5 h-5 text-primary" />
+                  <h3 className="font-bold text-foreground">Lịch sử chuyển khoản ATM thành công</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 border border-primary/30 text-primary">
+                    {successfulAtmTransfers.length} giao dịch
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {successfulAtmTransfers.map((t) => (
+                  <div key={t.id} className="flex items-center justify-between py-3 px-3 rounded-lg border border-primary/20 bg-primary/5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-primary/10">
+                        <CheckCircle className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{t.method}</p>
+                        <p className="text-[10px] text-muted-foreground">{new Date(t.created_at).toLocaleString("vi-VN")}</p>
+                        {t.note && (
+                          <p className="text-[10px] text-primary/80 mt-0.5 truncate max-w-[200px]">{t.note}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-sm text-primary">+{formatVND(t.amount)}</p>
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border bg-primary/10 border-primary/30 text-primary">
+                        <CheckCircle className="w-3 h-3" /> Thành công
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Recent Top-up History */}
         {user && (
           <div className="bg-card border border-border rounded-xl p-6 neon-card space-y-4 animate-slide-up">
