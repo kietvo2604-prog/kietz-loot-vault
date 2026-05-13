@@ -70,8 +70,8 @@ const TopUp = () => {
         supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
       ]);
       
-      setTransferCode(profileRes.data?.transfer_code || null);
-      setSepayQrUrl(profileRes.data?.bank_qr_code || null);
+      const userTransferCode = profileRes.data?.transfer_code || null;
+      setTransferCode(userTransferCode);
       setRecentTopups(topupRes.data || []);
       
       // Find pending ATM transfer
@@ -80,41 +80,15 @@ const TopUp = () => {
       );
       setPendingAtmRequest(pendingAtm || null);
       
-      // If no QR code yet, trigger generation
-      if (!profileRes.data?.bank_qr_code && profileRes.data?.transfer_code) {
-        try {
-          console.log("[v0] Triggering QR generation for user:", user.id);
-          const { data: qrData, error: qrError } = await supabase.functions.invoke("generate-sepay-qr", {
-            body: {
-              user_id: user.id,
-              transfer_code: profileRes.data.transfer_code,
-            },
-          });
-          console.log("[v0] QR generation response:", qrData, "Error:", qrError);
-          
-          if (qrError) {
-            console.error("[v0] QR generation error:", qrError);
-          } else if (qrData?.qr_url) {
-            console.log("[v0] Setting QR URL:", qrData.qr_url);
-            setSepayQrUrl(qrData.qr_url);
-          } else if (qrData?.success) {
-            console.log("[v0] QR generated successfully, reloading profile...");
-            // Reload profile to get updated QR code
-            const { data: updatedProfile } = await supabase
-              .from("profiles")
-              .select("bank_qr_code")
-              .eq("user_id", user.id)
-              .single();
-            if (updatedProfile?.bank_qr_code) {
-              setSepayQrUrl(updatedProfile.bank_qr_code);
-            }
-          }
-        } catch (err) {
-          console.error("[v0] QR generation exception:", err);
-        }
+      // Generate QR URL directly using VietQR (free public API)
+      // MB Bank ID: 970422, Account: 0987672604
+      if (userTransferCode) {
+        const qrUrl = `https://img.vietqr.io/image/970422-0987672604-compact2.png?addInfo=${encodeURIComponent(userTransferCode)}&accountName=${encodeURIComponent("VO ANH KIET")}`;
+        setSepayQrUrl(qrUrl);
       }
       
       setLoadingTopups(false);
+      setLoadingQr(false);
     };
     fetchData();
   }, [user]);
@@ -153,7 +127,7 @@ const TopUp = () => {
       }
 
       toast({
-        title: "✅ Đã phê duyệt tự đ���ng",
+        title: "✅ Đã phê duyệt tự �����ng",
         description: `Nạp ${formatVND(amount)} → Thực cộng ${formatVND(data.credit_amount)} (bonus ${data.bonus_rate})`,
       });
 
