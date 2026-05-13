@@ -66,14 +66,9 @@ const TopUp = () => {
 
   // Function to generate SePay QR URL directly (no Edge Function needed)
   const generateSepayQrUrl = (transferCode: string) => {
-    // SePay QR URL format: https://qr.sepay.vn/img?bank=MB&acc={account}&template=compact&des={description}
-    const params = new URLSearchParams({
-      bank: "MB",
-      acc: BANK_ACCOUNT,
-      template: "compact",
-      des: transferCode,
-    });
-    return `https://qr.sepay.vn/img?${params.toString()}`;
+    // SePay QR URL format - using VietQR standard
+    // https://qr.sepay.vn/img?acc=ACCOUNT&bank=BANK&amount=&des=CONTENT&template=compact
+    return `https://qr.sepay.vn/img?acc=${BANK_ACCOUNT}&bank=MB&amount=&des=${encodeURIComponent(transferCode)}&template=compact`;
   };
 
   // Fetch transfer code and recent topups
@@ -94,13 +89,20 @@ const TopUp = () => {
       const topupRes = await supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5);
       
       const code = profileRes.data?.transfer_code || null;
+      console.log("[v0] Profile data:", profileRes.data);
+      console.log("[v0] Profile error:", profileRes.error);
+      console.log("[v0] Transfer code found:", code);
+      
       setTransferCode(code);
       setRecentTopups(topupRes.data || []);
       
       // Generate QR URL directly if we have transfer_code
       if (code) {
         const qrUrl = generateSepayQrUrl(code);
+        console.log("[v0] Generated QR URL:", qrUrl);
         setSepayQrUrl(qrUrl);
+      } else {
+        console.log("[v0] No transfer_code found, cannot generate QR");
       }
       
       setLoadingQr(false);
@@ -151,7 +153,7 @@ const TopUp = () => {
 
       toast({
         title: "✅ Đã phê duyệt tự động",
-        description: `Nạp ${formatVND(amount)} → Thực cộng ${formatVND(data.credit_amount)} (bonus ${data.bonus_rate})`,
+        description: `Nạp ${formatVND(amount)} �� Thực cộng ${formatVND(data.credit_amount)} (bonus ${data.bonus_rate})`,
       });
 
       setAtmAmount("");
@@ -440,16 +442,11 @@ const TopUp = () => {
                           </div>
                         </div>
                       ) : sepayQrUrl ? (
-                        <div className="relative">
-                          <img 
-                            src={sepayQrUrl} 
-                            alt="MB Bank Sepay QR" 
-                            className="w-56 h-56 rounded-lg border-2 border-blue-200 object-contain shadow-lg" 
-                          />
-                          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md border border-gray-200">
-                            <span className="text-xs font-semibold text-gray-700">Quét để thanh toán</span>
-                          </div>
-                        </div>
+                        <img 
+                          src={sepayQrUrl} 
+                          alt="MB Bank Sepay QR" 
+                          className="w-56 h-56 rounded-lg border-2 border-blue-200 object-contain shadow-lg" 
+                        />
                       ) : !user ? (
                         <div className="w-56 h-56 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
                           <QrCode className="w-12 h-12 text-gray-300 mb-2" />
