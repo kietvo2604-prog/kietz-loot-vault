@@ -91,18 +91,37 @@ const TopUp = () => {
 
   // Fetch transfer code, QR code, and recent topups
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.log("[v0] No user, skipping fetch");
+      return;
+    }
     const fetchData = async () => {
+      console.log("[v0] Fetching profile for user.id:", user.id);
       setLoadingTopups(true);
       setLoadingQr(true);
       
-      const [profileRes, topupRes] = await Promise.all([
-        supabase.from("profiles").select("transfer_code, bank_qr_code").eq("user_id", user.id).single(),
-        supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
-      ]);
+      // Try fetching with user_id first
+      let profileRes = await supabase.from("profiles").select("*").eq("user_id", user.id).single();
+      
+      console.log("[v0] Profile query with user_id result:", profileRes);
+      
+      // If no result, try with id column
+      if (profileRes.error || !profileRes.data) {
+        console.log("[v0] Trying with id column instead...");
+        profileRes = await supabase.from("profiles").select("*").eq("id", user.id).single();
+        console.log("[v0] Profile query with id result:", profileRes);
+      }
+      
+      const topupRes = await supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5);
+      
+      console.log("[v0] Full profile data:", JSON.stringify(profileRes.data, null, 2));
+      console.log("[v0] Profile error:", profileRes.error);
       
       const code = profileRes.data?.transfer_code || null;
       const existingQr = profileRes.data?.bank_qr_code || null;
+      
+      console.log("[v0] Extracted transfer_code:", code);
+      console.log("[v0] Extracted bank_qr_code:", existingQr);
       
       setTransferCode(code);
       setSepayQrUrl(existingQr);
