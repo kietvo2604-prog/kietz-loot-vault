@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   CreditCard, Smartphone, Wallet, Gift, Copy, CheckCircle,
   AlertTriangle, ArrowRight, Loader2, Clock, XCircle, History,
-  RefreshCw, QrCode
+  QrCode
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -60,85 +60,56 @@ const TopUp = () => {
 
   const currentCard = cardTypes.find((c) => c.id === selectedCard)!;
 
-  // Function to generate/refresh QR code
-  const generateQrCode = async (userId: string, code: string) => {
-    setLoadingQr(true);
-    try {
-      const { data: qrData, error: qrError } = await supabase.functions.invoke("generate-sepay-qr", {
-        body: {
-          user_id: userId,
-          transfer_code: code,
-        },
-      });
+  // MB Bank account details
+  const BANK_ACCOUNT = "0987672604";
+  const ACCOUNT_NAME = "VO ANH KIET";
 
-      if (qrError) {
-        toast({ title: "Lỗi", description: "Không thể tạo mã QR. Vui lòng thử lại.", variant: "destructive" });
-        return null;
-      }
-
-      if (qrData?.qr_url) {
-        setSepayQrUrl(qrData.qr_url);
-        return qrData.qr_url;
-      }
-      return null;
-    } catch (err) {
-      toast({ title: "Lỗi", description: "Đã xảy ra lỗi khi tạo mã QR.", variant: "destructive" });
-      return null;
-    } finally {
-      setLoadingQr(false);
-    }
+  // Function to generate SePay QR URL directly (no Edge Function needed)
+  const generateSepayQrUrl = (transferCode: string) => {
+    // SePay QR URL format: https://qr.sepay.vn/img?bank=MB&acc={account}&template=compact&des={description}
+    const params = new URLSearchParams({
+      bank: "MB",
+      acc: BANK_ACCOUNT,
+      template: "compact",
+      des: transferCode,
+    });
+    return `https://qr.sepay.vn/img?${params.toString()}`;
   };
 
-  // Fetch transfer code, QR code, and recent topups
+  // Fetch transfer code and recent topups
   useEffect(() => {
-    if (!user) {
-      console.log("[v0] No user, skipping fetch");
-      return;
-    }
+    if (!user) return;
+    
     const fetchData = async () => {
-      console.log("[v0] Fetching profile for user.id:", user.id);
       setLoadingTopups(true);
       setLoadingQr(true);
       
-      // Try fetching with user_id first
-      let profileRes = await supabase.from("profiles").select("*").eq("user_id", user.id).single();
+      // Try fetching with user_id first, then id
+      let profileRes = await supabase.from("profiles").select("transfer_code").eq("user_id", user.id).single();
       
-      console.log("[v0] Profile query with user_id result:", profileRes);
-      
-      // If no result, try with id column
       if (profileRes.error || !profileRes.data) {
-        console.log("[v0] Trying with id column instead...");
-        profileRes = await supabase.from("profiles").select("*").eq("id", user.id).single();
-        console.log("[v0] Profile query with id result:", profileRes);
+        profileRes = await supabase.from("profiles").select("transfer_code").eq("id", user.id).single();
       }
       
       const topupRes = await supabase.from("topup_requests").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5);
       
-      console.log("[v0] Full profile data:", JSON.stringify(profileRes.data, null, 2));
-      console.log("[v0] Profile error:", profileRes.error);
-      
       const code = profileRes.data?.transfer_code || null;
-      const existingQr = profileRes.data?.bank_qr_code || null;
-      
-      console.log("[v0] Extracted transfer_code:", code);
-      console.log("[v0] Extracted bank_qr_code:", existingQr);
-      
       setTransferCode(code);
-      setSepayQrUrl(existingQr);
       setRecentTopups(topupRes.data || []);
+      
+      // Generate QR URL directly if we have transfer_code
+      if (code) {
+        const qrUrl = generateSepayQrUrl(code);
+        setSepayQrUrl(qrUrl);
+      }
+      
+      setLoadingQr(false);
       
       // Find pending ATM transfer
       const pendingAtm = (topupRes.data || []).find(
         (t) => t.status === "pending" && t.method.toLowerCase().includes("chuyển khoản")
       );
       setPendingAtmRequest(pendingAtm || null);
-      
-      // Generate QR if we have transfer_code but no QR yet
-      if (code && !existingQr) {
-        await generateQrCode(user.id, code);
-      } else {
-        setLoadingQr(false);
-      }
       
       setLoadingTopups(false);
     };
@@ -459,27 +430,13 @@ const TopUp = () => {
                         <span className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
                           <QrCode className="w-3 h-3" /> SePay QR
                         </span>
-                        {sepayQrUrl && !loadingQr && transferCode && (
-                          <button
-                            onClick={() => generateQrCode(user!.id, transferCode)}
-                            disabled={loadingQr}
-                            className="text-blue-600 hover:text-blue-700 text-xs flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full transition-colors"
-                          >
-                            {loadingQr ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <RefreshCw className="w-3 h-3" />
-                            )}
-                            Tạo lại
-                          </button>
-                        )}
                       </div>
 
                       {loadingQr ? (
                         <div className="w-56 h-56 flex items-center justify-center bg-gray-100 rounded-lg">
                           <div className="text-center">
                             <Loader2 className="w-8 h-8 animate-spin text-blue-500 mx-auto" />
-                            <p className="text-xs text-gray-500 mt-2">Đang tạo mã QR...</p>
+                            <p className="text-xs text-gray-500 mt-2">Đang tải...</p>
                           </div>
                         </div>
                       ) : sepayQrUrl ? (
@@ -499,22 +456,15 @@ const TopUp = () => {
                           <p className="text-center text-sm text-gray-500">Vui lòng đăng nhập</p>
                           <p className="text-center text-xs text-gray-400 mt-1">để xem mã QR của bạn</p>
                         </div>
-                      ) : transferCode ? (
+                      ) : !transferCode ? (
                         <div className="w-56 h-56 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
-                          <QrCode className="w-12 h-12 text-gray-300 mb-2" />
-                          <p className="text-center text-sm text-gray-500">Chưa có mã QR</p>
-                          <button
-                            onClick={() => generateQrCode(user.id, transferCode)}
-                            disabled={loadingQr}
-                            className="mt-2 text-blue-600 hover:text-blue-700 text-xs font-semibold flex items-center gap-1"
-                          >
-                            <RefreshCw className="w-3 h-3" /> Tạo mã QR
-                          </button>
+                          <Loader2 className="w-8 h-8 animate-spin text-gray-400 mb-2" />
+                          <p className="text-center text-sm text-gray-500">Đang tải mã QR...</p>
                         </div>
                       ) : (
                         <div className="w-56 h-56 bg-gray-100 rounded-lg flex flex-col items-center justify-center">
-                          <Loader2 className="w-8 h-8 animate-spin text-gray-400 mb-2" />
-                          <p className="text-center text-sm text-gray-500">Đang tải...</p>
+                          <QrCode className="w-12 h-12 text-gray-300 mb-2" />
+                          <p className="text-center text-sm text-gray-500">Không thể tải mã QR</p>
                         </div>
                       )}
                       
