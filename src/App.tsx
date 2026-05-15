@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import TopUp from "./pages/TopUp";
+import TopUpCard from "./pages/TopUpCard";
+import TopUpATM from "./pages/TopUpATM";
 import History from "./pages/History";
 import TopUpHistory from "./pages/TopUpHistory";
 import PurchaseHistory from "./pages/PurchaseHistory";
@@ -42,6 +44,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/nap-tien" element={<TopUp />} />
+            <Route path="/nap-the-cao" element={<TopUpCard />} />
+            <Route path="/nap-atm" element={<TopUpATM />} />
             <Route path="/lich-su" element={<History />} />
             <Route path="/lich-su-nap" element={<TopUpHistory />} />
             <Route path="/lich-su-mua" element={<PurchaseHistory />} />

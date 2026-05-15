@@ -61,7 +61,7 @@ const Header = () => {
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   const isHistoryActive = ["/lich-su-nap", "/lich-su-mua", "/bien-dong-so-du", "/lich-su"].some(p => currentPath.startsWith(p));
-  const isTopupActive = currentPath.startsWith("/nap-tien");
+  const isTopupActive = ["/nap-tien", "/nap-the-cao", "/nap-atm"].some(p => currentPath.startsWith(p));
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">
@@ -160,23 +160,35 @@ const Header = () => {
           </div>
         </div>
 
+        {/* Mobile Search */}
+        <form onSubmit={handleSearch} className="mt-3 md:hidden">
+          <div className="relative">
+            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tim kiem san pham..."
+              className="w-full bg-muted border border-border rounded-lg py-2 pl-4 pr-12 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:neon-border transition-all" />
+            <button type="submit" className="absolute right-1 top-1 bottom-1 px-3 gradient-primary rounded-md flex items-center justify-center hover:opacity-90 transition-opacity">
+              <Search className="w-4 h-4 text-primary-foreground" />
+            </button>
+          </div>
+        </form>
+
         {/* Nav with dropdowns */}
-        <nav className={`mt-3 ${mobileMenuOpen ? "flex flex-col" : "hidden"} md:flex md:flex-row md:items-center gap-2 pb-1 relative z-40`}>
+        <nav className={`mt-3 ${mobileMenuOpen ? "flex flex-col gap-1" : "hidden"} md:flex md:flex-row md:items-center md:gap-2 pb-1 relative z-40`}>
           {user && (
             <button
-              onClick={() => navigate("/nap-tien")}
+              onClick={() => { navigate("/nap-tien"); setMobileMenuOpen(false); }}
               className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-primary bg-primary/5 hover:bg-primary/10 transition-colors shrink-0"
-              title="Nạp tiền"
+              title="Nap tien"
             >
               <Wallet className="w-4 h-4 text-primary" />
               <span className="text-xs font-semibold text-primary whitespace-nowrap">
-                Ví: <span className="text-yellow-500 font-bold">{(balance ?? 0).toLocaleString("vi-VN")}đ</span>
+                Vi: <span className="text-yellow-500 font-bold">{(balance ?? 0).toLocaleString("vi-VN")}d</span>
               </span>
             </button>
           )}
 
-          <button onClick={() => navigate("/")} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${currentPath === "/" ? "gradient-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
-            <Home className="w-4 h-4" /> Trang chủ
+          <button onClick={() => { navigate("/"); setMobileMenuOpen(false); }} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${currentPath === "/" ? "gradient-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+            <Home className="w-4 h-4" /> Trang chu
           </button>
 
           {/* Nạp tiền dropdown */}
@@ -191,17 +203,15 @@ const Header = () => {
                 <div className="px-3 py-2 border-b border-border flex items-center gap-2 text-primary font-bold text-xs">
                   <Landmark className="w-4 h-4" /> Chọn phương thức nạp
                 </div>
-                <button onClick={() => { navigate("/nap-tien?method=bank"); setTopupOpen(false); }}
+                <button onClick={() => { navigate("/nap-atm"); setTopupOpen(false); setMobileMenuOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <Landmark className="w-4 h-4 text-primary" /> Ngân hàng
+                  <Landmark className="w-4 h-4 text-primary" /> ATM / Ví điện tử
+                  <span className="ml-auto text-[10px] text-accent font-bold">+10%</span>
                 </button>
-                <button onClick={() => { navigate("/nap-tien?method=card"); setTopupOpen(false); }}
+                <button onClick={() => { navigate("/nap-the-cao"); setTopupOpen(false); setMobileMenuOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                   <Smartphone className="w-4 h-4 text-accent" /> Thẻ cào
-                </button>
-                <button onClick={() => { navigate("/nap-tien?method=ewallet"); setTopupOpen(false); }}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <Wallet className="w-4 h-4 text-primary" /> Ví điện tử
+                  <span className="ml-auto text-[10px] text-destructive font-bold">-20%</span>
                 </button>
               </div>
             )}
@@ -216,26 +226,26 @@ const Header = () => {
             </button>
             {historyOpen && (
               <div className="absolute top-full left-0 mt-1 bg-card border border-border rounded-lg shadow-lg py-1 min-w-[220px] z-[100] animate-fade-in">
-                <button onClick={() => { navigate("/lich-su-mua"); setHistoryOpen(false); }}
+                <button onClick={() => { navigate("/lich-su-mua"); setHistoryOpen(false); setMobileMenuOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <ShoppingCart className="w-4 h-4 text-primary" /> LSMH - Lịch sử mua hàng
+                  <ShoppingCart className="w-4 h-4 text-primary" /> LSMH - Lich su mua hang
                 </button>
-                <button onClick={() => { navigate("/lich-su-nap"); setHistoryOpen(false); }}
+                <button onClick={() => { navigate("/lich-su-nap"); setHistoryOpen(false); setMobileMenuOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <Wallet className="w-4 h-4 text-primary" /> LSNT - Lịch sử nạp tiền
+                  <Wallet className="w-4 h-4 text-primary" /> LSNT - Lich su nap tien
                 </button>
-                <button onClick={() => { navigate("/bien-dong-so-du"); setHistoryOpen(false); }}
+                <button onClick={() => { navigate("/bien-dong-so-du"); setHistoryOpen(false); setMobileMenuOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <FileText className="w-4 h-4 text-primary" /> BDSD - Biến động số dư
+                  <FileText className="w-4 h-4 text-primary" /> BDSD - Bien dong so du
                 </button>
               </div>
             )}
           </div>
 
-          <button onClick={() => navigate("/quy-dinh-nap-the")} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${currentPath.startsWith("/quy-dinh-nap-the") ? "gradient-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
-            <FileText className="w-4 h-4" /> Quy định nạp thẻ
+          <button onClick={() => { navigate("/quy-dinh-nap-the"); setMobileMenuOpen(false); }} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${currentPath.startsWith("/quy-dinh-nap-the") ? "gradient-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+            <FileText className="w-4 h-4" /> Quy dinh nap the
           </button>
-          <button onClick={() => navigate("/faq")} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${currentPath.startsWith("/faq") ? "gradient-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
+          <button onClick={() => { navigate("/faq"); setMobileMenuOpen(false); }} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${currentPath.startsWith("/faq") ? "gradient-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
             <HelpCircle className="w-4 h-4" /> FAQ
           </button>
         </nav>
