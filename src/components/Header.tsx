@@ -61,7 +61,7 @@ const Header = () => {
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   const isHistoryActive = ["/lich-su-nap", "/lich-su-mua", "/bien-dong-so-du", "/lich-su"].some(p => currentPath.startsWith(p));
-  const isTopupActive = currentPath.startsWith("/nap-tien");
+  const isTopupActive = currentPath.startsWith("/nap-the") || currentPath.startsWith("/nap-atm");
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">
@@ -164,7 +164,7 @@ const Header = () => {
         <nav className={`mt-3 ${mobileMenuOpen ? "flex flex-col" : "hidden"} md:flex md:flex-row md:items-center gap-2 pb-1 relative z-40`}>
           {user && (
             <button
-              onClick={() => navigate("/nap-tien")}
+              onClick={() => navigate("/nap-the")}
               className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-primary bg-primary/5 hover:bg-primary/10 transition-colors shrink-0"
               title="Nạp tiền"
             >
@@ -191,17 +191,15 @@ const Header = () => {
                 <div className="px-3 py-2 border-b border-border flex items-center gap-2 text-primary font-bold text-xs">
                   <Landmark className="w-4 h-4" /> Chọn phương thức nạp
                 </div>
-                <button onClick={() => { navigate("/nap-tien?method=bank"); setTopupOpen(false); }}
+                <button onClick={() => { navigate("/nap-atm"); setTopupOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <Landmark className="w-4 h-4 text-primary" /> Ngân hàng
+                  <Landmark className="w-4 h-4 text-primary" /> Ngân hàng / ATM
+                  <span className="ml-auto text-[10px] font-bold text-accent">+10%</span>
                 </button>
-                <button onClick={() => { navigate("/nap-tien?method=card"); setTopupOpen(false); }}
+                <button onClick={() => { navigate("/nap-the"); setTopupOpen(false); }}
                   className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
                   <Smartphone className="w-4 h-4 text-accent" /> Thẻ cào
-                </button>
-                <button onClick={() => { navigate("/nap-tien?method=ewallet"); setTopupOpen(false); }}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors">
-                  <Wallet className="w-4 h-4 text-primary" /> Ví điện tử
+                  <span className="ml-auto text-[10px] font-bold text-destructive">-20%</span>
                 </button>
               </div>
             )}
